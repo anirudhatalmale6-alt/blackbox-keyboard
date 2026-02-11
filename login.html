@@ -131,6 +131,10 @@
 </div>
 
 <div id="osk-overlay" style="display:none;position:fixed;bottom:0;left:0;width:100%;z-index:9999;background:#111;border-top:2px solid #c00;padding:5px;box-sizing:border-box;">
+<div id="osk-preview" style="background:#1a1a1a;border:1px solid #c00;border-radius:4px;padding:6px 10px;margin-bottom:5px;color:#fff;font-size:14px;font-family:monospace;min-height:20px;display:flex;align-items:center;gap:8px;">
+<span id="osk-preview-label" style="color:#888;font-size:11px;white-space:nowrap;"></span>
+<span id="osk-preview-value" style="color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+</div>
 <div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
 <button type="button" onclick="oskPress('1')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">1</button>
 <button type="button" onclick="oskPress('2')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">2</button>
@@ -191,9 +195,28 @@ var theBlackBoxBaseURL="http://localhost:5000/"
 var oskActiveInput=null;
 var oskShiftOn=false;
 
+function oskGetLabel(inp){
+	var row=inp.closest('.login-player-details,.new-player-details');
+	if(row){
+		var lbl=row.querySelector('.login-player-text,.new-player-text');
+		if(lbl&&lbl.textContent.trim())return lbl.textContent.trim();
+	}
+	return '';
+}
+function oskUpdatePreview(){
+	if(!oskActiveInput)return;
+	var val=oskActiveInput.value;
+	if(oskActiveInput.type=='password')val=val.replace(/./g,'\u2022');
+	document.getElementById('osk-preview-value').textContent=val||'\u00a0';
+}
 function oskShow(inp){
 	oskActiveInput=inp;
 	document.getElementById('osk-overlay').style.display='block';
+	document.getElementById('osk-preview-label').textContent=oskGetLabel(inp);
+	oskUpdatePreview();
+	setTimeout(function(){
+		inp.scrollIntoView({behavior:'smooth',block:'center'});
+	},100);
 }
 function oskHide(){
 	document.getElementById('osk-overlay').style.display='none';
@@ -203,14 +226,15 @@ function oskPress(key){
 	if(!oskActiveInput)return;
 	if(key=='DONE'){oskHide();return;}
 	if(key=='DEL'){oskActiveInput.value=oskActiveInput.value.slice(0,-1);oskFireInput();return;}
-	if(key=='SPACE'){oskActiveInput.value+=' ';}
-	else{oskActiveInput.value+=oskShiftOn?key.toUpperCase():key.toLowerCase();}
+	if(key=='SPACE'){oskActiveInput.value+=' ';oskFireInput();return;}
+	oskActiveInput.value+=oskShiftOn?key.toUpperCase():key.toLowerCase();
 	oskFireInput();
 }
 function oskFireInput(){
 	if(!oskActiveInput)return;
 	var e=new Event('input',{bubbles:true});
 	oskActiveInput.dispatchEvent(e);
+	oskUpdatePreview();
 }
 function oskToggleShift(){
 	oskShiftOn=!oskShiftOn;
