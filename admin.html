@@ -388,7 +388,12 @@
                 <div class="admin-panel-label">Last Update</div>
                 <div class="admin-panel-value" id="last-update">-</div>
             </div>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">WiFi Bypass</div>
+                <div class="admin-panel-value" id="wifi-bypass-status">-</div>
+            </div>
             <div class="admin-actions">
+                <button class="admin-btn primary" id="wifi-bypass-btn" onclick="toggleWifiBypass()">Enable WiFi Bypass</button>
                 <button class="admin-btn danger" onclick="logoutPlayer()">Logout Player</button>
                 <button class="admin-btn danger" onclick="shutdownApp()">Shutdown App</button>
             </div>
@@ -413,6 +418,27 @@
                 <button class="admin-btn" onclick="clearTip()">Clear Tip</button>
             </div>
             <div id="tip-status" style="margin-top: 10px; color: #666; font-size: 0.9em;"></div>
+        </div>
+
+        <!-- Camera & Audio -->
+        <div class="admin-panel" style="grid-column: 1 / -1;">
+            <h2>Camera & Audio</h2>
+            <div class="admin-actions" style="margin-top: 0; margin-bottom: 15px;">
+                <button class="admin-btn primary" onclick="takePhoto()">Take Photo</button>
+                <button class="admin-btn primary" onclick="listenAudio()">Listen (5 sec)</button>
+                <button class="admin-btn primary" id="live-listen-btn" onclick="toggleLiveListen()">Live Listen</button>
+                <span id="camera-status" style="color: #666; font-size: 0.9em; line-height: 40px;"></span>
+            </div>
+            <div id="photo-container" style="text-align: center; display: none;">
+                <img id="photo-preview" style="max-width: 100%; max-height: 400px; border: 2px solid #600;" />
+                <div style="margin-top: 5px; color: #666; font-size: 0.8em;" id="photo-timestamp"></div>
+            </div>
+            <div id="audio-container" style="display: none; margin-top: 10px;">
+                <audio id="audio-player" controls style="width: 100%;"></audio>
+            </div>
+            <div id="live-audio-container" style="display: none; margin-top: 10px;">
+                <audio id="live-audio-player" controls autoplay style="width: 100%;"></audio>
+            </div>
         </div>
 
         <!-- Log Messages -->
@@ -677,6 +703,58 @@ async function fetchNetworkStatus() {
     }
 }
 
+// Fetch WiFi bypass status
+async function fetchBypassStatus() {
+    try {
+        const response = await fetch(theBlackBoxBase + 'network/bypass');
+        const data = await response.json();
+
+        const statusEl = document.getElementById('wifi-bypass-status');
+        const btnEl = document.getElementById('wifi-bypass-btn');
+
+        if (data.bypass) {
+            statusEl.textContent = 'ENABLED';
+            statusEl.className = 'admin-panel-value warning';
+            btnEl.textContent = 'Disable WiFi Bypass';
+            btnEl.className = 'admin-btn danger';
+        } else {
+            statusEl.textContent = 'Disabled';
+            statusEl.className = 'admin-panel-value';
+            btnEl.textContent = 'Enable WiFi Bypass';
+            btnEl.className = 'admin-btn primary';
+        }
+
+        return data;
+    } catch (error) {
+        document.getElementById('wifi-bypass-status').textContent = 'Error';
+        return null;
+    }
+}
+
+// Action: Toggle WiFi bypass
+async function toggleWifiBypass() {
+    try {
+        // First get current status
+        const statusResponse = await fetch(theBlackBoxBase + 'network/bypass');
+        const statusData = await statusResponse.json();
+
+        // Toggle it
+        const newState = statusData.bypass ? 0 : 1;
+        const response = await fetch(theBlackBoxBase + 'network/bypass?enable=' + newState);
+        const data = await response.json();
+
+        if (data.bypass) {
+            addLog('WiFi bypass ENABLED - WiFi page will be skipped', 'warning');
+        } else {
+            addLog('WiFi bypass disabled', 'info');
+        }
+
+        fetchBypassStatus();
+    } catch (error) {
+        addLog('Failed to toggle WiFi bypass: ' + error.message, 'error');
+    }
+}
+
 // Action: Complete current challenge
 async function completeChallenge() {
     try {
@@ -736,7 +814,8 @@ async function refreshStatus() {
         fetchBannerData(),
         fetchSensorStatus(),
         fetchPlayerList(),
-        fetchNetworkStatus()
+        fetchNetworkStatus(),
+        fetchBypassStatus()
     ]);
 
     indicator.classList.remove('updating');
@@ -801,6 +880,108 @@ async function clearTip() {
         statusEl.textContent = 'Failed to clear tip';
         statusEl.style.color = '#c00';
     }
+}
+
+// Action: Take photo from camera
+async function takePhoto() {
+    const statusEl = document.getElementById('camera-status');
+    statusEl.textContent = 'Capturing photo...';
+    statusEl.style.color = '#fc0';
+
+    try {
+        const response = await fetch(theBlackBoxBase + 'camera/photo');
+        const data = await response.json();
+
+        if (data.success) {
+            const img = document.getElementById('photo-preview');
+            img.src = 'data:image/jpeg;base64,' + data.photo;
+            document.getElementById('photo-container').style.display = 'block';
+            document.getElementById('photo-timestamp').textContent = 'Captured: ' + new Date().toLocaleTimeString();
+            statusEl.textContent = 'Photo captured!';
+            statusEl.style.color = '#0c0';
+            addLog('Photo captured', 'info');
+        } else {
+            statusEl.textContent = 'Failed: ' + (data.error || 'Unknown error');
+            statusEl.style.color = '#c00';
+            addLog('Photo failed: ' + data.error, 'error');
+        }
+    } catch (error) {
+        statusEl.textContent = 'Error: ' + error.message;
+        statusEl.style.color = '#c00';
+        addLog('Photo error: ' + error.message, 'error');
+    }
+}
+
+// Action: Listen to audio
+async function listenAudio() {
+    const statusEl = document.getElementById('camera-status');
+    statusEl.textContent = 'Recording audio (5 sec)...';
+    statusEl.style.color = '#fc0';
+
+    try {
+        const response = await fetch(theBlackBoxBase + 'audio/stream');
+        const data = await response.json();
+
+        if (data.success) {
+            const audio = document.getElementById('audio-player');
+            audio.src = 'data:audio/wav;base64,' + data.audio;
+            document.getElementById('audio-container').style.display = 'block';
+            audio.play();
+            statusEl.textContent = 'Playing audio...';
+            statusEl.style.color = '#0c0';
+            addLog('Audio captured and playing', 'info');
+        } else {
+            statusEl.textContent = 'Failed: ' + (data.error || 'Unknown error');
+            statusEl.style.color = '#c00';
+            addLog('Audio failed: ' + data.error, 'error');
+        }
+    } catch (error) {
+        statusEl.textContent = 'Error: ' + error.message;
+        statusEl.style.color = '#c00';
+        addLog('Audio error: ' + error.message, 'error');
+    }
+}
+
+// Live Listen - real-time audio stream
+var liveListening = false;
+
+// Audio stream base URL (same host, port 8080)
+var audioStreamHost = window.location.hostname;
+if (urlParams.has('host')) {
+    audioStreamHost = urlParams.get('host');
+}
+var audioStreamUrl = 'http://' + audioStreamHost + ':8000/live';
+
+async function toggleLiveListen() {
+    const btn = document.getElementById('live-listen-btn');
+    const statusEl = document.getElementById('camera-status');
+    const liveAudio = document.getElementById('live-audio-player');
+    const container = document.getElementById('live-audio-container');
+
+    if (liveListening) {
+        // Stop live listening
+        liveListening = false;
+        liveAudio.pause();
+        liveAudio.src = '';
+        container.style.display = 'none';
+        btn.textContent = 'Live Listen';
+        btn.className = 'admin-btn primary';
+        statusEl.textContent = 'Live listen stopped';
+        statusEl.style.color = '#666';
+        addLog('Live listen stopped', 'info');
+        return;
+    }
+
+    // Start live listening
+    liveListening = true;
+    btn.textContent = 'Stop Listening';
+    btn.className = 'admin-btn danger';
+    container.style.display = 'block';
+    liveAudio.src = audioStreamUrl;
+    liveAudio.play();
+    statusEl.textContent = 'Live listening...';
+    statusEl.style.color = '#0c0';
+    addLog('Live listen started (stream)', 'info');
 }
 
 // Initialize
