@@ -8,18 +8,19 @@
 <body>
 
 <div class="tab">
-	<button class="tablinks" onclick="openPanel(event, 'panel-login')" id="defaultOpen">Login</button>
-	<button class="tablinks" onclick="openPanel(event, 'panel-new-player')">New Player</button>
+	<button class="tablinks" onclick="openPanel(event, 'panel-login')" id="defaultOpen">Inloggen</button>
+	<button class="tablinks" onclick="openPanel(event, 'panel-new-player')">Nieuwe Speler</button>
+	<button class="tablinks" onclick="loadHighScorePage()">Highscore</button>
 </div>
 
 <div id="panel-login" class="tabcontent">
-	<h3>Login</h3>
+	<h3>Inloggen</h3>
 
 	<br />
 
 	<div class="login-player-details">
 	<div class="login-player-text">
-	Enter player name
+	Spelersnaam
 	</div>
 	<div class="login-player-entry">
 	<input type="text" id="player-name" style="width: 40%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" data-osk="name" />
@@ -30,10 +31,10 @@
 
 	<div class="login-player-details">
 	<div class="login-player-text">
-	Enter PIN
+	PIN code
 	</div>
 	<div class="login-player-entry">
-	<input type="password" id="player-pin" style="width: 10%;" oninput="checkPIN(event)" onfocus="oskShow(this)" data-osk="pin" />
+	<input type="password" id="player-pin" style="width: 20%;" oninput="checkPIN(event)" onfocus="oskShow(this)" data-osk="pin" />
 	</div>
 	</div>
 
@@ -43,7 +44,7 @@
 	<div class="login-player-text">
 	</div>
 	<div class="login-player-entry">
-	<input type="button" id="login" value="Login" onclick="playerLogin()" />
+	<input type="button" id="login" value="Inloggen" onclick="playerLogin()" style="font-size:1.3em;padding:12px 40px;" />
 	</div>
 	</div>
 
@@ -58,12 +59,12 @@
 </div>
 
 <div id="panel-new-player" class="tabcontent">
-	<h3>New Player</h3>
-	<p>Please enter details.</p>
+	<h3>Nieuwe Speler</h3>
+	<p>Vul je gegevens in.</p>
 
 	<div class="new-player-details">
 	<div class="new-player-text">
-	Player Name
+	Spelersnaam
 	</div>
 	<div class="new-player-entry">
 	<input type="text" id="new-player-name" style="width: 40%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" data-osk="name" />
@@ -72,16 +73,16 @@
 
 	<div class="new-player-details">
 	<div class="new-player-text">
-	PIN
+	PIN code
 	</div>
 	<div class="new-player-entry">
-	<input type="password" id="new-player-pin" style="width: 10%;" oninput="checkPIN(event)" onfocus="oskShow(this)" data-osk="pin" />
+	<input type="password" id="new-player-pin" style="width: 20%;" oninput="checkPIN(event)" onfocus="oskShow(this)" data-osk="pin" />
 	</div>
 	</div>
 
 	<div class="new-player-details">
 	<div class="new-player-text">
-	Full Name
+	Volledige Naam
 	</div>
 	<div class="new-player-entry">
 	<input type="text" id="new-player-full-name" style="width: 50%;" oninput="checkFullName(event)" onfocus="oskShow(this)" data-osk="fullname" />
@@ -90,7 +91,7 @@
 
 	<div class="new-player-details">
 	<div class="new-player-text">
-	Email Address
+	E-mailadres
 	</div>
 	<div class="new-player-entry">
 	<input type="text" id="new-player-email-address" style="width: 75%;" oninput="checkEmailAddress(event)" onfocus="oskShow(this)" data-osk="email" />
@@ -103,7 +104,7 @@
 	<div class="new-player-text">
 	</div>
 	<div class="new-player-entry">
-	<input type="button" id="submit" value="Register" onclick="playerCreate()" />
+	<input type="button" id="submit" value="Registreren" onclick="playerCreate()" style="font-size:1.3em;padding:12px 40px;" />
 	</div>
 	</div>
 
@@ -444,13 +445,13 @@ async function playerLogin() {
 
 	if (response.status === 200) {
 		// Login completed
-		showMessage("Login succeeded, please wait...");
+		showMessage("Inloggen gelukt, even geduld...");
 	} else if (response.status === 403) {
 		// Get div element
 		let divElem = document.getElementById("login-player-error");
 
 		// Set message
-		divElem.innerHTML = "Incorrect player details, please try again."
+		divElem.innerHTML = "Onjuiste gegevens, probeer het opnieuw."
 
 		// Show message
 		divElem.style.display = "block";
@@ -490,7 +491,7 @@ async function playerCreate() {
 
 	if (response.status === 201) {
 		// Player created
-		showMessage("Player created, please wait...");
+		showMessage("Speler aangemaakt, even geduld...");
 	} else if (response.status === 409) {
 		// Get div element
 		let divElem = document.getElementById("new-player-error");
