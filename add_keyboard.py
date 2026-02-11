@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Add inline onscreen keyboard to login.html"""
+"""Add inline onscreen keyboard to login.html - injected into existing script block"""
 
-KEYBOARD_SCRIPT = '''<script>
+# This keyboard code will be injected INTO the existing <script> block
+# right after the setTimeout line, so it definitely executes
+KEYBOARD_CODE = """
 /* On-Screen Keyboard */
 (function(){
 var ai=null,sh=false;
@@ -37,12 +39,9 @@ else ai.value+=sh?key.toUpperCase():key.toLowerCase();
 fi();
 }
 function fi(){if(ai){var e=new Event('input',{bubbles:true});ai.dispatchEvent(e);}}
-kb.addEventListener('touchstart',function(e){
-var b=e.target.closest?e.target.closest('button'):e.target;
-if(b&&b.tagName=='BUTTON'){e.preventDefault();e.stopPropagation();pk(b.getAttribute('data-key'));}
-},{passive:false});
-kb.addEventListener('mousedown',function(e){
-var b=e.target.closest?e.target.closest('button'):e.target;
+kb.addEventListener('click',function(e){
+var b=e.target;
+while(b&&b.tagName!='BUTTON'&&b!==kb)b=b.parentElement;
 if(b&&b.tagName=='BUTTON'){e.preventDefault();e.stopPropagation();pk(b.getAttribute('data-key'));}
 });
 function us(){
@@ -54,18 +53,26 @@ function sk(inp){ai=inp;kb.style.display='block';}
 function hk(){kb.style.display='none';ai=null;}
 var ins=document.querySelectorAll('input[type="text"],input[type="password"]');
 for(var i=0;i<ins.length;i++){
-ins[i].setAttribute('inputmode','none');
-ins[i].addEventListener('touchstart',function(e){e.preventDefault();sk(this);this.focus();},{passive:false});
-ins[i].addEventListener('mousedown',function(e){e.preventDefault();sk(this);this.focus();});
+ins[i].addEventListener('click',function(){sk(this);});
+ins[i].addEventListener('focus',function(){sk(this);});
 }
-document.addEventListener('touchstart',function(e){
-if(kb.style.display=='block'&&!kb.contains(e.target)&&e.target!==ai)hk();
+document.addEventListener('click',function(e){
+if(kb.style.display=='block'&&!kb.contains(e.target)){
+var isInput=false;
+for(var j=0;j<ins.length;j++){if(ins[j]===e.target)isInput=true;}
+if(!isInput)hk();
+}
 });
 us();
 })();
-</script>'''
+"""
 
 import os
+
+# The marker we look for - the last line of the existing script
+INJECT_AFTER = "setTimeout(loadHighScorePage, 300000);"
+# Marker to detect if keyboard was already added
+KB_MARKER = "/* On-Screen Keyboard */"
 
 for path in ['/var/www/html/theblackbox/login.html', '/opt/theblackbox/html/login.html']:
     if not os.path.exists(path):
@@ -83,9 +90,8 @@ for path in ['/var/www/html/theblackbox/login.html', '/opt/theblackbox/html/logi
     content = content.replace('<script>document.title="KB LOADED";</script>\n', '')
     content = content.replace('<script>document.title="KB LOADED";</script>', '')
 
-    # Remove any previously added inline keyboard
-    if 'osk-overlay' in content:
-        # Find and remove old inline keyboard script
+    # Remove any previously added separate keyboard script block
+    while True:
         start = content.find('<script>\n/* On-Screen Keyboard */')
         if start == -1:
             start = content.find('<script>\n(function(){var ai=')
@@ -93,17 +99,34 @@ for path in ['/var/www/html/theblackbox/login.html', '/opt/theblackbox/html/logi
             end = content.find('</script>', start)
             if end > -1:
                 content = content[:start] + content[end+9:]
+                continue
+        break
 
-    # Clean up extra blank lines before </body>
-    while '\n\n\n</body>' in content:
-        content = content.replace('\n\n\n</body>', '\n\n</body>')
+    # Remove keyboard code if previously injected into existing script
+    if KB_MARKER in content:
+        start = content.find(KB_MARKER)
+        # Find the closing of the IIFE: })();
+        end = content.find('})();\n</script>', start)
+        if end > -1:
+            content = content[:start] + content[end:]
 
-    # Add keyboard before </body>
-    content = content.replace('</body>', KEYBOARD_SCRIPT + '\n</body>')
+    # Clean up extra blank lines
+    while '\n\n\n' in content:
+        content = content.replace('\n\n\n', '\n\n')
+
+    # Now inject keyboard code INTO the existing script block
+    if INJECT_AFTER in content:
+        content = content.replace(
+            INJECT_AFTER,
+            INJECT_AFTER + "\n" + KEYBOARD_CODE
+        )
+        print(f"OK (injected into existing script): {path}")
+    else:
+        # Fallback: add before </body>
+        content = content.replace('</body>', '<script>\n' + KEYBOARD_CODE + '\n</script>\n</body>')
+        print(f"OK (added as separate script): {path}")
 
     with open(path, 'w') as f:
         f.write(content)
-
-    print(f"OK: {path}")
 
 print("Done! Run: sudo bash /opt/theblackbox/restart.sh")
