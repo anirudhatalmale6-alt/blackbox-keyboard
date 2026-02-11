@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="theblackbox.css">
+</head>
+<body>
+
+<div class="tab">
+	<button class="tablinks" onclick="openPanel(event, 'panel-login')" id="defaultOpen">Login</button>
+	<button class="tablinks" onclick="openPanel(event, 'panel-new-player')">New Player</button>
+</div>
+
+<div id="panel-login" class="tabcontent">
+	<h3>Login</h3>
+
+	<br />
+
+	<div class="login-player-details">
+	<div class="login-player-text">
+	Enter player name
+	</div>
+	<div class="login-player-entry">
+	<input type="text" id="player-name" style="width: 40%;" oninput="checkPlayerName(event)" />
+	</div>
+	</div>
+
+	<br />
+
+	<div class="login-player-details">
+	<div class="login-player-text">
+	Enter PIN
+	</div>
+	<div class="login-player-entry">
+	<input type="password" id="player-pin" style="width: 10%;" oninput="checkPIN(event)" />
+	</div>
+	</div>
+
+	<br />
+
+	<div class="login-player-details">
+	<div class="login-player-text">
+	</div>
+	<div class="login-player-entry">
+	<input type="button" id="login" value="Login" onclick="playerLogin()" />
+	</div>
+	</div>
+
+	<br />
+
+	<div class="login-player-details">
+        <div class="login-player-text">
+        </div>
+	<div id="login-player-error" class="login-player-entry" style="display:none;">
+	</div>
+	</div>
+</div>
+
+<div id="panel-new-player" class="tabcontent">
+	<h3>New Player</h3>
+	<p>Please enter details.</p>
+
+	<div class="new-player-details">
+	<div class="new-player-text">
+	Player Name
+	</div>
+	<div class="new-player-entry">
+	<input type="text" id="new-player-name" style="width: 40%;" oninput="checkPlayerName(event)" />
+	</div>
+	</div>
+
+	<div class="new-player-details">
+	<div class="new-player-text">
+	PIN
+	</div>
+	<div class="new-player-entry">
+	<input type="password" id="new-player-pin" style="width: 10%;" oninput="checkPIN(event)" />
+	</div>
+	</div>
+
+	<div class="new-player-details">
+	<div class="new-player-text">
+	Full Name
+	</div>
+	<div class="new-player-entry">
+	<input type="text" id="new-player-full-name" style="width: 50%;" oninput="checkFullName(event)" />
+	</div>
+	</div>
+
+	<div class="new-player-details">
+	<div class="new-player-text">
+	Email Address
+	</div>
+	<div class="new-player-entry">
+	<input type="text" id="new-player-email-address" style="width: 75%;" oninput="checkEmailAddress(event)" />
+	</div>
+	</div>
+
+	<br/>
+
+	<div class="new-player-details">
+	<div class="new-player-text">
+	</div>
+	<div class="new-player-entry">
+	<input type="button" id="submit" value="Register" onclick="playerCreate()" />
+	</div>
+	</div>
+
+	<br />
+
+	<div class="new-player-details">
+	<div class="new-player-text">
+	</div>
+	<div id="new-player-error" class="new-player-entry" style="display:none;">
+	</div>
+	</div>
+</div>
+
+<div id="panel-message" class="tabcontent">
+
+	<br /><br />
+	<br /><br />
+
+	<div id="message-block" style="text-align: center;" >
+	</div>
+
+	<br /><br />
+	<br /><br />
+
+</div>
+
+<script>
+// REST server address
+var theBlackBoxBaseURL="http://localhost:5000/"
+
+// Go to highscore page
+async function loadHighScorePage() {
+	// Create highscore select URL
+	let urlLoadHighScorePage = theBlackBoxBaseURL+"page/select?select_page=highscore";
+	try {
+		// Load login page
+		//console.log(urlLoadHighScorePage)
+		let response = await fetch(urlLoadHighScorePage);
+
+		// Process response
+		responseJSON = await response.json();
+		//console.log(responseJSON);
+	} catch (error) {
+		// Print error
+		//console.log(error);
+	}
+}
+
+// Display selected panel
+function openPanel(evt, panelName) {
+	let i, tabcontent, tablinks;
+
+        // Hide panels
+	tabcontent = document.getElementsByClassName("tabcontent");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+
+	// Deactivate tabs
+	tablinks = document.getElementsByClassName("tablinks");
+	for (i = 0; i < tablinks.length; i++) {
+		tablinks[i].className = tablinks[i].className.replace(" active", "");
+	}
+
+	// Display panel
+	document.getElementById(panelName).style.display = "block";
+	// Activate tab
+	evt.currentTarget.className += " active";
+}
+
+// Display selected panel
+function showMessage(message) {
+	let i, tabcontent, tablinks;
+
+        // Hide panels
+	tabcontent = document.getElementsByClassName("tabcontent");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+
+	// Deactivate tabs
+	tablinks = document.getElementsByClassName("tablinks");
+	for (i = 0; i < tablinks.length; i++) {
+		tablinks[i].style.display = "none";
+	}
+
+        // Get message div
+        let divElem = document.getElementById("message-block");
+	divElem.innerHTML = message;
+
+	// Display panel
+	document.getElementById("panel-message").style.display = "block";
+}
+
+// Check player name
+function checkPlayerName(evt) {
+	// First get input element
+	let inputElem = document.getElementById(evt.currentTarget.id);
+
+	// Create regex filter (this needs work)
+	let regexFilter = /[^a-z0-9-_ ]/ig;
+
+	inputElem.value = checkText(inputElem.value, regexFilter, 24);
+}
+
+// Check PIN
+function checkPIN(evt) {
+	// First get input element
+	let inputElem = document.getElementById(evt.currentTarget.id);
+
+	// Create regex filter (this needs work)
+	let regexFilter = /[^0-9]/ig;
+
+	inputElem.value = checkText(inputElem.value, regexFilter, 4);
+}
+
+// Check full name
+function checkFullName(evt) {
+	// First get input element
+	let inputElem = document.getElementById(evt.currentTarget.id);
+
+	// Create regex filter (this needs work)
+	let regexFilter = /[^a-z0-9- ]/ig;
+
+	inputElem.value = checkText(inputElem.value, regexFilter, 64);
+}
+
+// Check email address
+function checkEmailAddress(evt) {
+	// First get input element
+	let inputElem = document.getElementById(evt.currentTarget.id);
+
+	// Create regex filter (this needs work)
+	let regexFilter = /[^a-z0-9-_@.]/ig;
+
+	inputElem.value = checkText(inputElem.value, regexFilter, 255);
+}
+
+// Check the string length of the input field generating the event against the given maximum
+function checkText(str, txtFilter, maxTxtLen) {
+	str = str.replace(txtFilter, "");
+
+	if (str.length > maxTxtLen) {
+		// Text lenght is greater than the max, so strip last character
+		str = str.substring(0, maxTxtLen);
+	}
+
+	return str;
+}
+
+// Try to login player
+async function playerLogin() {
+	// Get player name
+	let playerName = document.getElementById("player-name").value;
+	// Get PIN
+	let pin = document.getElementById("player-pin").value;
+
+	// Build login data block
+	let loginData = {
+			"player_name": playerName,
+			"pin": pin,
+	};
+
+	// Create request URL
+	let urlPlayerLogin = theBlackBoxBaseURL+"player/login";
+	// Send login data
+	let response = await fetch(urlPlayerLogin, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(loginData)
+	});
+
+	if (response.status === 200) {
+		// Login completed
+		showMessage("Login succeeded, please wait...");
+	} else if (response.status === 403) {
+		// Get div element
+		let divElem = document.getElementById("login-player-error");
+
+		// Set message
+		divElem.innerHTML = "Incorrect player details, please try again."
+
+		// Show message
+		divElem.style.display = "block";
+	}
+}
+
+// Try to create player
+async function playerCreate() {
+	// Get player name
+	let playerName = document.getElementById("new-player-name").value;
+	// Get PIN
+	let pin = document.getElementById("new-player-pin").value;
+	// Get full name
+	let fullName = document.getElementById("new-player-full-name").value;
+	// Get email address
+	let emailAddress = document.getElementById("new-player-email-address").value;
+
+	// Build create data block
+	let createData = {
+			"player_name": playerName,
+			"pin": pin,
+			"full_name": fullName,
+			"email": emailAddress,
+	};
+
+	// Create request URL
+	let urlPlayerCreate = theBlackBoxBaseURL+"player/create";
+	// Send player data
+	let response = await fetch(urlPlayerCreate, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(createData)
+	});
+	const response_body = await response.json();
+
+	if (response.status === 201) {
+		// Player created
+		showMessage("Player created, please wait...");
+	} else if (response.status === 409) {
+		// Get div element
+		let divElem = document.getElementById("new-player-error");
+
+		// Set message
+		divElem.innerHTML = response_body.error_msg;
+
+		// Show message
+		divElem.style.display = "block";
+	}
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+
+// After 5 mins, load highscore page
+setTimeout(loadHighScorePage, 300000);
+
+// ============ ON-SCREEN KEYBOARD ============
+(function(){
+var oskActive=null, oskShift=false;
+var oskDiv=document.createElement('div');
+oskDiv.id='osk-overlay';
+oskDiv.style.cssText='display:none;position:fixed;bottom:0;left:0;width:100%;z-index:9999;background:#111;border-top:2px solid #c00;padding:5px;box-sizing:border-box;';
+var oskRows=[['1','2','3','4','5','6','7','8','9','0'],['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L','@'],['SHIFT','Z','X','C','V','B','N','M','.','DEL'],['SPACE','DONE']];
+var oskHtml='';
+for(var r=0;r<oskRows.length;r++){
+oskHtml+='<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">';
+for(var k=0;k<oskRows[r].length;k++){
+var ky=oskRows[r][k],w='9%',fs='14px';
+if(ky=='SPACE')w='60%';else if(ky=='DONE')w='35%';else if(ky=='SHIFT'||ky=='DEL'){w='14%';fs='11px';}
+var bg='#222',bc='#600',tc='#fff';
+if(ky=='DONE'){bg='#030';bc='#0c0';tc='#0c0';}
+else if(ky=='DEL'){bg='#300';bc='#c00';tc='#c00';}
+else if(ky=='SHIFT'){bg='#220';bc='#660';tc='#fc0';}
+var lb=ky;
+if(ky=='SPACE')lb='SPATIE';else if(ky=='DEL')lb='WISSEN';else if(ky=='DONE')lb='KLAAR';else if(ky=='SHIFT')lb='A/a';
+oskHtml+='<button type="button" data-osk="'+ky+'" style="width:'+w+';height:42px;background:'+bg+';border:1px solid '+bc+';color:'+tc+';font-size:'+fs+';font-weight:bold;border-radius:4px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">'+lb+'</button>';
+}
+oskHtml+='</div>';
+}
+oskDiv.innerHTML=oskHtml;
+document.body.appendChild(oskDiv);
+
+function oskPress(key){
+if(!oskActive)return;
+if(key=='DONE'){oskHide();return;}
+if(key=='DEL'){oskActive.value=oskActive.value.slice(0,-1);oskFire();return;}
+if(key=='SHIFT'){oskShift=!oskShift;oskUpdateShift();return;}
+if(key=='SPACE')oskActive.value+=' ';
+else oskActive.value+=oskShift?key.toUpperCase():key.toLowerCase();
+oskFire();
+}
+function oskFire(){
+if(!oskActive)return;
+var e=new Event('input',{bubbles:true});
+oskActive.dispatchEvent(e);
+}
+function oskUpdateShift(){
+var bs=oskDiv.querySelectorAll('button');
+for(var i=0;i<bs.length;i++){
+var k=bs[i].getAttribute('data-osk');
+if(k&&k.length==1&&k.match(/[A-Z]/))bs[i].textContent=oskShift?k.toUpperCase():k.toLowerCase();
+}
+var sb=oskDiv.querySelector('[data-osk="SHIFT"]');
+if(sb)sb.style.background=oskShift?'#440':'#220';
+}
+function oskShow(inp){oskActive=inp;oskDiv.style.display='block';}
+function oskHide(){oskDiv.style.display='none';oskActive=null;}
+
+oskDiv.onclick=function(e){
+var b=e.target;
+if(b.tagName=='BUTTON'&&b.getAttribute('data-osk')){
+e.preventDefault();
+e.stopPropagation();
+oskPress(b.getAttribute('data-osk'));
+}
+};
+
+var oskInputs=document.querySelectorAll('input[type="text"],input[type="password"]');
+for(var i=0;i<oskInputs.length;i++){
+oskInputs[i].onclick=function(){oskShow(this);};
+}
+
+document.onclick=function(e){
+if(oskDiv.style.display=='block'){
+if(!oskDiv.contains(e.target)){
+var isOskInput=false;
+for(var j=0;j<oskInputs.length;j++){if(oskInputs[j]===e.target)isOskInput=true;}
+if(!isOskInput)oskHide();
+}
+}
+};
+
+oskUpdateShift();
+})();
+// ============ END ON-SCREEN KEYBOARD ============
+</script>
+
+</body>
+</html>
