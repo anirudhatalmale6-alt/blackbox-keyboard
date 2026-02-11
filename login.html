@@ -22,7 +22,7 @@
 	Enter player name
 	</div>
 	<div class="login-player-entry">
-	<input type="text" id="player-name" style="width: 40%;" oninput="checkPlayerName(event)" />
+	<input type="text" id="player-name" style="width: 40%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" />
 	</div>
 	</div>
 
@@ -33,7 +33,7 @@
 	Enter PIN
 	</div>
 	<div class="login-player-entry">
-	<input type="password" id="player-pin" style="width: 10%;" oninput="checkPIN(event)" />
+	<input type="password" id="player-pin" style="width: 10%;" oninput="checkPIN(event)" onfocus="oskShow(this)" />
 	</div>
 	</div>
 
@@ -66,7 +66,7 @@
 	Player Name
 	</div>
 	<div class="new-player-entry">
-	<input type="text" id="new-player-name" style="width: 40%;" oninput="checkPlayerName(event)" />
+	<input type="text" id="new-player-name" style="width: 40%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" />
 	</div>
 	</div>
 
@@ -75,7 +75,7 @@
 	PIN
 	</div>
 	<div class="new-player-entry">
-	<input type="password" id="new-player-pin" style="width: 10%;" oninput="checkPIN(event)" />
+	<input type="password" id="new-player-pin" style="width: 10%;" oninput="checkPIN(event)" onfocus="oskShow(this)" />
 	</div>
 	</div>
 
@@ -84,7 +84,7 @@
 	Full Name
 	</div>
 	<div class="new-player-entry">
-	<input type="text" id="new-player-full-name" style="width: 50%;" oninput="checkFullName(event)" />
+	<input type="text" id="new-player-full-name" style="width: 50%;" oninput="checkFullName(event)" onfocus="oskShow(this)" />
 	</div>
 	</div>
 
@@ -93,7 +93,7 @@
 	Email Address
 	</div>
 	<div class="new-player-entry">
-	<input type="text" id="new-player-email-address" style="width: 75%;" oninput="checkEmailAddress(event)" />
+	<input type="text" id="new-player-email-address" style="width: 75%;" oninput="checkEmailAddress(event)" onfocus="oskShow(this)" />
 	</div>
 	</div>
 
@@ -130,9 +130,100 @@
 
 </div>
 
+<div id="osk-overlay" style="display:none;position:fixed;bottom:0;left:0;width:100%;z-index:9999;background:#111;border-top:2px solid #c00;padding:5px;box-sizing:border-box;">
+<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
+<button type="button" onclick="oskPress('1')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">1</button>
+<button type="button" onclick="oskPress('2')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">2</button>
+<button type="button" onclick="oskPress('3')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">3</button>
+<button type="button" onclick="oskPress('4')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">4</button>
+<button type="button" onclick="oskPress('5')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">5</button>
+<button type="button" onclick="oskPress('6')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">6</button>
+<button type="button" onclick="oskPress('7')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">7</button>
+<button type="button" onclick="oskPress('8')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">8</button>
+<button type="button" onclick="oskPress('9')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">9</button>
+<button type="button" onclick="oskPress('0')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">0</button>
+</div>
+<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
+<button type="button" onclick="oskPress('Q')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">q</button>
+<button type="button" onclick="oskPress('W')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">w</button>
+<button type="button" onclick="oskPress('E')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">e</button>
+<button type="button" onclick="oskPress('R')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">r</button>
+<button type="button" onclick="oskPress('T')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">t</button>
+<button type="button" onclick="oskPress('Y')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">y</button>
+<button type="button" onclick="oskPress('U')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">u</button>
+<button type="button" onclick="oskPress('I')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">i</button>
+<button type="button" onclick="oskPress('O')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">o</button>
+<button type="button" onclick="oskPress('P')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">p</button>
+</div>
+<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
+<button type="button" onclick="oskPress('A')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">a</button>
+<button type="button" onclick="oskPress('S')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">s</button>
+<button type="button" onclick="oskPress('D')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">d</button>
+<button type="button" onclick="oskPress('F')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">f</button>
+<button type="button" onclick="oskPress('G')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">g</button>
+<button type="button" onclick="oskPress('H')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">h</button>
+<button type="button" onclick="oskPress('J')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">j</button>
+<button type="button" onclick="oskPress('K')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">k</button>
+<button type="button" onclick="oskPress('L')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">l</button>
+<button type="button" onclick="oskPress('@')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">@</button>
+</div>
+<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
+<button type="button" onclick="oskToggleShift()" style="width:14%;height:42px;background:#220;border:1px solid #660;color:#fc0;font-size:11px;font-weight:bold;border-radius:4px;" id="osk-shift-btn">A/a</button>
+<button type="button" onclick="oskPress('Z')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">z</button>
+<button type="button" onclick="oskPress('X')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">x</button>
+<button type="button" onclick="oskPress('C')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">c</button>
+<button type="button" onclick="oskPress('V')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">v</button>
+<button type="button" onclick="oskPress('B')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">b</button>
+<button type="button" onclick="oskPress('N')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">n</button>
+<button type="button" onclick="oskPress('M')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">m</button>
+<button type="button" onclick="oskPress('.')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">.</button>
+<button type="button" onclick="oskPress('DEL')" style="width:14%;height:42px;background:#300;border:1px solid #c00;color:#c00;font-size:11px;font-weight:bold;border-radius:4px;">WISSEN</button>
+</div>
+<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
+<button type="button" onclick="oskPress('SPACE')" style="width:60%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">SPATIE</button>
+<button type="button" onclick="oskPress('DONE')" style="width:35%;height:42px;background:#030;border:1px solid #0c0;color:#0c0;font-size:14px;font-weight:bold;border-radius:4px;">KLAAR</button>
+</div>
+</div>
+
 <script>
 // REST server address
 var theBlackBoxBaseURL="http://localhost:5000/"
+var oskActiveInput=null;
+var oskShiftOn=false;
+
+function oskShow(inp){
+	oskActiveInput=inp;
+	document.getElementById('osk-overlay').style.display='block';
+}
+function oskHide(){
+	document.getElementById('osk-overlay').style.display='none';
+	oskActiveInput=null;
+}
+function oskPress(key){
+	if(!oskActiveInput)return;
+	if(key=='DONE'){oskHide();return;}
+	if(key=='DEL'){oskActiveInput.value=oskActiveInput.value.slice(0,-1);oskFireInput();return;}
+	if(key=='SPACE'){oskActiveInput.value+=' ';}
+	else{oskActiveInput.value+=oskShiftOn?key.toUpperCase():key.toLowerCase();}
+	oskFireInput();
+}
+function oskFireInput(){
+	if(!oskActiveInput)return;
+	var e=new Event('input',{bubbles:true});
+	oskActiveInput.dispatchEvent(e);
+}
+function oskToggleShift(){
+	oskShiftOn=!oskShiftOn;
+	document.getElementById('osk-shift-btn').style.background=oskShiftOn?'#440':'#220';
+	var btns=document.getElementById('osk-overlay').querySelectorAll('button');
+	for(var i=0;i<btns.length;i++){
+		var oc=btns[i].getAttribute('onclick');
+		if(oc&&oc.match(/oskPress\('[A-Z]'\)/)){
+			var letter=oc.charAt(10);
+			btns[i].textContent=oskShiftOn?letter.toUpperCase():letter.toLowerCase();
+		}
+	}
+}
 
 // Go to highscore page
 async function loadHighScorePage() {
@@ -344,86 +435,6 @@ document.getElementById("defaultOpen").click();
 
 // After 5 mins, load highscore page
 setTimeout(loadHighScorePage, 300000);
-
-// ============ ON-SCREEN KEYBOARD ============
-(function(){
-var oskActive=null, oskShift=false;
-var oskDiv=document.createElement('div');
-oskDiv.id='osk-overlay';
-oskDiv.style.cssText='display:none;position:fixed;bottom:0;left:0;width:100%;z-index:9999;background:#111;border-top:2px solid #c00;padding:5px;box-sizing:border-box;';
-var oskRows=[['1','2','3','4','5','6','7','8','9','0'],['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L','@'],['SHIFT','Z','X','C','V','B','N','M','.','DEL'],['SPACE','DONE']];
-var oskHtml='';
-for(var r=0;r<oskRows.length;r++){
-oskHtml+='<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">';
-for(var k=0;k<oskRows[r].length;k++){
-var ky=oskRows[r][k],w='9%',fs='14px';
-if(ky=='SPACE')w='60%';else if(ky=='DONE')w='35%';else if(ky=='SHIFT'||ky=='DEL'){w='14%';fs='11px';}
-var bg='#222',bc='#600',tc='#fff';
-if(ky=='DONE'){bg='#030';bc='#0c0';tc='#0c0';}
-else if(ky=='DEL'){bg='#300';bc='#c00';tc='#c00';}
-else if(ky=='SHIFT'){bg='#220';bc='#660';tc='#fc0';}
-var lb=ky;
-if(ky=='SPACE')lb='SPATIE';else if(ky=='DEL')lb='WISSEN';else if(ky=='DONE')lb='KLAAR';else if(ky=='SHIFT')lb='A/a';
-oskHtml+='<button type="button" data-osk="'+ky+'" style="width:'+w+';height:42px;background:'+bg+';border:1px solid '+bc+';color:'+tc+';font-size:'+fs+';font-weight:bold;border-radius:4px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">'+lb+'</button>';
-}
-oskHtml+='</div>';
-}
-oskDiv.innerHTML=oskHtml;
-document.body.appendChild(oskDiv);
-
-function oskPress(key){
-if(!oskActive)return;
-if(key=='DONE'){oskHide();return;}
-if(key=='DEL'){oskActive.value=oskActive.value.slice(0,-1);oskFire();return;}
-if(key=='SHIFT'){oskShift=!oskShift;oskUpdateShift();return;}
-if(key=='SPACE')oskActive.value+=' ';
-else oskActive.value+=oskShift?key.toUpperCase():key.toLowerCase();
-oskFire();
-}
-function oskFire(){
-if(!oskActive)return;
-var e=new Event('input',{bubbles:true});
-oskActive.dispatchEvent(e);
-}
-function oskUpdateShift(){
-var bs=oskDiv.querySelectorAll('button');
-for(var i=0;i<bs.length;i++){
-var k=bs[i].getAttribute('data-osk');
-if(k&&k.length==1&&k.match(/[A-Z]/))bs[i].textContent=oskShift?k.toUpperCase():k.toLowerCase();
-}
-var sb=oskDiv.querySelector('[data-osk="SHIFT"]');
-if(sb)sb.style.background=oskShift?'#440':'#220';
-}
-function oskShow(inp){oskActive=inp;oskDiv.style.display='block';}
-function oskHide(){oskDiv.style.display='none';oskActive=null;}
-
-oskDiv.onclick=function(e){
-var b=e.target;
-if(b.tagName=='BUTTON'&&b.getAttribute('data-osk')){
-e.preventDefault();
-e.stopPropagation();
-oskPress(b.getAttribute('data-osk'));
-}
-};
-
-var oskInputs=document.querySelectorAll('input[type="text"],input[type="password"]');
-for(var i=0;i<oskInputs.length;i++){
-oskInputs[i].onclick=function(){oskShow(this);};
-}
-
-document.onclick=function(e){
-if(oskDiv.style.display=='block'){
-if(!oskDiv.contains(e.target)){
-var isOskInput=false;
-for(var j=0;j<oskInputs.length;j++){if(oskInputs[j]===e.target)isOskInput=true;}
-if(!isOskInput)oskHide();
-}
-}
-};
-
-oskUpdateShift();
-})();
-// ============ END ON-SCREEN KEYBOARD ============
 </script>
 
 </body>
