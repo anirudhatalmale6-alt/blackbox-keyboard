@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>The BlackBox - Admin Dashboard</title>
+<link rel="stylesheet" type="text/css" href="theblackbox.css">
+<style>
+/* Admin Dashboard Specific Styles */
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-header {
+    text-align: center;
+    border-bottom: 2px solid #c00;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.admin-header h1 {
+    color: #c00;
+    margin: 0;
+    font-size: 2em;
+}
+
+.admin-header .status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+    background-color: #666;
+}
+
+.admin-header .status-indicator.connected {
+    background-color: #0c0;
+    box-shadow: 0 0 8px #0c0;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.admin-panel {
+    border: 1px solid #c00;
+    padding: 15px;
+    background-color: #111;
+}
+
+.admin-panel h2 {
+    color: #c00;
+    margin-top: 0;
+    font-size: 1.4em;
+    border-bottom: 1px solid #600;
+    padding-bottom: 10px;
+}
+
+.admin-panel-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+}
+
+.admin-panel-row:last-child {
+    border-bottom: none;
+}
+
+.admin-panel-label {
+    color: #888;
+}
+
+.admin-panel-value {
+    color: #0c0;
+    text-align: right;
+    font-weight: bold;
+}
+
+.admin-panel-value.warning {
+    color: #fc0;
+}
+
+.admin-panel-value.error {
+    color: #c00;
+}
+
+/* Timer Display */
+.timer-display {
+    font-size: 3em;
+    text-align: center;
+    color: #0c0;
+    font-family: monospace;
+    padding: 20px;
+    background-color: #000;
+    border: 2px solid #0c0;
+    margin-bottom: 15px;
+}
+
+.timer-display.paused {
+    color: #fc0;
+    border-color: #fc0;
+}
+
+/* Sensor Grid */
+.sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+}
+
+.sensor-item {
+    text-align: center;
+    padding: 15px;
+    border: 1px solid #600;
+    background-color: #200;
+}
+
+.sensor-item.active {
+    background-color: #020;
+    border-color: #0c0;
+}
+
+.sensor-id {
+    font-size: 0.9em;
+    color: #888;
+}
+
+.sensor-state {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #c00;
+}
+
+.sensor-item.active .sensor-state {
+    color: #0c0;
+}
+
+/* Challenge Progress */
+.challenge-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.challenge-step {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    margin: 0 2px;
+    background-color: #200;
+    border: 1px solid #600;
+}
+
+.challenge-step.completed {
+    background-color: #020;
+    border-color: #0c0;
+}
+
+.challenge-step.current {
+    background-color: #220;
+    border-color: #fc0;
+    box-shadow: 0 0 10px #fc0;
+}
+
+.challenge-step-number {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.challenge-step.completed .challenge-step-number {
+    color: #0c0;
+}
+
+.challenge-step.current .challenge-step-number {
+    color: #fc0;
+}
+
+/* Player List */
+.player-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.player-item {
+    display: grid;
+    grid-template-columns: 2fr 3fr 2fr;
+    padding: 8px;
+    border-bottom: 1px solid #333;
+}
+
+.player-item:hover {
+    background-color: #200;
+}
+
+.player-item.current-player {
+    background-color: #020;
+    border-left: 3px solid #0c0;
+}
+
+/* Action Buttons */
+.admin-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.admin-btn {
+    padding: 10px 20px;
+    background-color: #200;
+    border: 1px solid #c00;
+    color: #c00;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.admin-btn:hover {
+    background-color: #400;
+}
+
+.admin-btn.primary {
+    background-color: #030;
+    border-color: #0c0;
+    color: #0c0;
+}
+
+.admin-btn.primary:hover {
+    background-color: #050;
+}
+
+.admin-btn.danger {
+    background-color: #300;
+    border-color: #f00;
+    color: #f00;
+}
+
+.admin-btn.danger:hover {
+    background-color: #500;
+}
+
+/* Log Panel */
+.log-panel {
+    grid-column: 1 / -1;
+}
+
+.log-messages {
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #000;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.log-entry {
+    padding: 3px 0;
+    border-bottom: 1px solid #222;
+}
+
+.log-entry .timestamp {
+    color: #666;
+}
+
+.log-entry .message {
+    color: #0c0;
+}
+
+.log-entry.error .message {
+    color: #f00;
+}
+
+.log-entry.warning .message {
+    color: #fc0;
+}
+
+/* Refresh indicator */
+.refresh-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    background-color: #000;
+    border: 1px solid #333;
+    color: #666;
+    font-size: 0.8em;
+}
+
+.refresh-indicator.updating {
+    color: #0c0;
+    border-color: #0c0;
+}
+</style>
+</head>
+<body>
+
+<div class="refresh-indicator" id="refresh-indicator">Updating...</div>
+
+<div class="admin-container">
+    <div class="admin-header">
+        <h1><span class="status-indicator" id="connection-status"></span>The BlackBox - Admin Dashboard</h1>
+        <div style="color: #666; margin-top: 5px;">Remote Monitoring Panel</div>
+    </div>
+
+    <div class="admin-grid">
+        <!-- Current Game Status -->
+        <div class="admin-panel">
+            <h2>Current Game</h2>
+            <div class="timer-display" id="timer-display">00:00:00</div>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">Player</div>
+                <div class="admin-panel-value" id="current-player">-</div>
+            </div>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">Full Name</div>
+                <div class="admin-panel-value" id="current-fullname">-</div>
+            </div>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">Status</div>
+                <div class="admin-panel-value" id="game-status">No active game</div>
+            </div>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">Current Page</div>
+                <div class="admin-panel-value" id="current-page">-</div>
+            </div>
+        </div>
+
+        <!-- Challenge Progress -->
+        <div class="admin-panel">
+            <h2>Challenge Progress</h2>
+            <div class="challenge-progress" id="challenge-progress">
+                <!-- Filled dynamically -->
+            </div>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">Current Challenge</div>
+                <div class="admin-panel-value" id="current-challenge">-</div>
+            </div>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">Total Challenges</div>
+                <div class="admin-panel-value" id="total-challenges">-</div>
+            </div>
+            <div class="admin-actions">
+                <button class="admin-btn primary" onclick="completeChallenge()">Complete Challenge</button>
+                <button class="admin-btn" onclick="refreshStatus()">Refresh</button>
+            </div>
+        </div>
+
+        <!-- Sensor Status -->
+        <div class="admin-panel">
+            <h2>Sensors</h2>
+            <div class="sensor-grid" id="sensor-grid">
+                <!-- Filled dynamically -->
+            </div>
+            <div class="admin-actions">
+                <button class="admin-btn" onclick="toggleSensor(2)">Toggle S2</button>
+                <button class="admin-btn" onclick="toggleSensor(3)">Toggle S3</button>
+                <button class="admin-btn" onclick="toggleSensor(4)">Toggle S4</button>
+                <button class="admin-btn" onclick="toggleSensor(5)">Toggle S5</button>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="admin-panel">
+            <h2>System</h2>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">WiFi Connected</div>
+                <div class="admin-panel-value" id="wifi-status">-</div>
+            </div>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">Network SSID</div>
+                <div class="admin-panel-value" id="wifi-ssid">-</div>
+            </div>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">API Status</div>
+                <div class="admin-panel-value" id="api-status">Checking...</div>
+            </div>
+            <div class="admin-panel-row">
+                <div class="admin-panel-label">Last Update</div>
+                <div class="admin-panel-value" id="last-update">-</div>
+            </div>
+            <div class="admin-actions">
+                <button class="admin-btn danger" onclick="logoutPlayer()">Logout Player</button>
+                <button class="admin-btn danger" onclick="shutdownApp()">Shutdown App</button>
+            </div>
+        </div>
+
+        <!-- Recent Players -->
+        <div class="admin-panel">
+            <h2>Recent Players (Highscore)</h2>
+            <div class="player-list" id="player-list">
+                <!-- Filled dynamically -->
+            </div>
+        </div>
+
+        <!-- Send Tip to Player -->
+        <div class="admin-panel">
+            <h2>Send Tip to Player</h2>
+            <div style="margin-bottom: 10px;">
+                <textarea id="tip-message" rows="3" style="width: 100%; background: #000; border: 1px solid #c00; color: #fff; padding: 10px; font-size: 1.1em; resize: vertical;" placeholder="Type a hint or tip for the player..."></textarea>
+            </div>
+            <div class="admin-actions">
+                <button class="admin-btn primary" onclick="sendTip()">Send Tip</button>
+                <button class="admin-btn" onclick="clearTip()">Clear Tip</button>
+            </div>
+            <div id="tip-status" style="margin-top: 10px; color: #666; font-size: 0.9em;"></div>
+        </div>
+
+        <!-- Log Messages -->
+        <div class="admin-panel log-panel">
+            <h2>Activity Log</h2>
+            <div class="log-messages" id="log-messages">
+                <!-- Filled dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+// Configuration - change this if accessing remotely
+var theBlackBoxBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? "http://127.0.0.1:5000/"
+    : "http://" + window.location.hostname + ":5000/";
+
+// If URL has a 'host' parameter, use that
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('host')) {
+    theBlackBoxBase = "http://" + urlParams.get('host') + ":5000/";
+}
+
+// State
+var logMessages = [];
+var lastChallengeStatus = null;
+
+// Add log message
+function addLog(message, type = 'info') {
+    const now = new Date();
+    const timestamp = now.toLocaleTimeString();
+    logMessages.unshift({ timestamp, message, type });
+    if (logMessages.length > 50) logMessages.pop();
+    updateLogDisplay();
+}
+
+function updateLogDisplay() {
+    const container = document.getElementById('log-messages');
+    container.innerHTML = logMessages.map(log =>
+        `<div class="log-entry ${log.type}">
+            <span class="timestamp">[${log.timestamp}]</span>
+            <span class="message"> ${log.message}</span>
+        </div>`
+    ).join('');
+}
+
+// Format elapsed time
+function formatTime(seconds) {
+    if (seconds === null || seconds === undefined) return '00:00:00';
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Update connection status
+function setConnectionStatus(connected) {
+    const indicator = document.getElementById('connection-status');
+    const apiStatus = document.getElementById('api-status');
+    if (connected) {
+        indicator.classList.add('connected');
+        apiStatus.textContent = 'Online';
+        apiStatus.className = 'admin-panel-value';
+    } else {
+        indicator.classList.remove('connected');
+        apiStatus.textContent = 'Offline';
+        apiStatus.className = 'admin-panel-value error';
+    }
+}
+
+// Fetch main status
+async function fetchStatus() {
+    try {
+        const response = await fetch(theBlackBoxBase + 'status');
+        const data = await response.json();
+
+        setConnectionStatus(true);
+        document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+
+        return data;
+    } catch (error) {
+        setConnectionStatus(false);
+        addLog('Failed to fetch status: ' + error.message, 'error');
+        return null;
+    }
+}
+
+// Fetch challenge status
+async function fetchChallengeStatus() {
+    try {
+        const response = await fetch(theBlackBoxBase + 'challenge/status');
+        const data = await response.json();
+
+        // Check for challenge changes
+        if (lastChallengeStatus && data.current_challenge !== lastChallengeStatus.current_challenge) {
+            addLog(`Challenge changed: ${lastChallengeStatus.current_challenge} → ${data.current_challenge}`);
+        }
+        lastChallengeStatus = data;
+
+        // Update current challenge info
+        document.getElementById('current-challenge').textContent = data.current_challenge || '-';
+        document.getElementById('total-challenges').textContent = data.total_challenges || '-';
+
+        // Update timer (API has typo: "elaspsed_time" instead of "elapsed_time")
+        const timerDisplay = document.getElementById('timer-display');
+        timerDisplay.textContent = formatTime(data.elaspsed_time || data.elapsed_time);
+
+        // Update current page
+        document.getElementById('current-page').textContent = data.page || '-';
+
+        // Update challenge progress bar (assume 5 challenges if not specified)
+        const totalChallenges = data.total_challenges || 5;
+        document.getElementById('total-challenges').textContent = totalChallenges;
+        const progressContainer = document.getElementById('challenge-progress');
+        let progressHTML = '';
+        for (let i = 1; i <= totalChallenges; i++) {
+            let stepClass = 'challenge-step';
+            if (i < data.current_challenge) stepClass += ' completed';
+            if (i === data.current_challenge) stepClass += ' current';
+            progressHTML += `<div class="${stepClass}"><div class="challenge-step-number">${i}</div></div>`;
+        }
+        progressContainer.innerHTML = progressHTML;
+
+        return data;
+    } catch (error) {
+        return null;
+    }
+}
+
+// Store current player ID for name lookup
+var currentPlayerId = null;
+
+// Fetch banner data (player info)
+async function fetchBannerData() {
+    try {
+        const response = await fetch(theBlackBoxBase + 'banner');
+        const data = await response.json();
+
+        // Update player info
+        currentPlayerId = data.player;
+        document.getElementById('current-player').textContent = data.player || '-';
+
+        // Update WiFi status
+        const wifiStatus = document.getElementById('wifi-status');
+        if (data.connected) {
+            wifiStatus.textContent = 'Yes';
+            wifiStatus.className = 'admin-panel-value';
+        } else {
+            wifiStatus.textContent = 'No';
+            wifiStatus.className = 'admin-panel-value warning';
+        }
+
+        // Update game status
+        const gameStatus = document.getElementById('game-status');
+        if (data.player && data.player !== '-') {
+            gameStatus.textContent = 'Playing';
+            gameStatus.className = 'admin-panel-value';
+        } else {
+            gameStatus.textContent = 'No active game';
+            gameStatus.className = 'admin-panel-value warning';
+        }
+
+        return data;
+    } catch (error) {
+        return null;
+    }
+}
+
+// Fetch sensor status
+async function fetchSensorStatus() {
+    try {
+        const response = await fetch(theBlackBoxBase + 'sensors/status');
+        const data = await response.json();
+
+        const sensorGrid = document.getElementById('sensor-grid');
+        let sensorHTML = '';
+
+        // API returns {"Sensor 2": false, "Sensor 3": true, ...} directly
+        const sensorKeys = Object.keys(data).filter(k => k.startsWith('Sensor'));
+
+        if (sensorKeys.length > 0) {
+            // Sort by sensor number
+            sensorKeys.sort((a, b) => {
+                const numA = parseInt(a.replace('Sensor ', ''));
+                const numB = parseInt(b.replace('Sensor ', ''));
+                return numA - numB;
+            });
+
+            for (const sensorKey of sensorKeys) {
+                const state = data[sensorKey];
+                const sensorNum = sensorKey.replace('Sensor ', '');
+                // true = triggered/active for this API
+                const isActive = state === true;
+                sensorHTML += `
+                    <div class="sensor-item ${isActive ? 'active' : ''}">
+                        <div class="sensor-id">${sensorKey}</div>
+                        <div class="sensor-state">${isActive ? 'ON' : 'OFF'}</div>
+                    </div>
+                `;
+            }
+        } else {
+            sensorHTML = '<div style="color: #888;">No sensors available</div>';
+        }
+
+        sensorGrid.innerHTML = sensorHTML;
+        return data;
+    } catch (error) {
+        return null;
+    }
+}
+
+// Fetch player list
+async function fetchPlayerList() {
+    try {
+        const response = await fetch(theBlackBoxBase + 'player/list?highscore=1');
+        const data = await response.json();
+
+        const playerList = document.getElementById('player-list');
+        let listHTML = '';
+
+        // Handle both array format and object with players property
+        const players = Array.isArray(data) ? data : (data.players || []);
+
+        if (players.length > 0) {
+            players.slice(0, 10).forEach((player, index) => {
+                // Try to find current player name by uid
+                if (currentPlayerId && player.uid == currentPlayerId) {
+                    document.getElementById('current-fullname').textContent = player.full_name || player.player_name || '-';
+                }
+
+                listHTML += `
+                    <div class="player-item ${player.uid == currentPlayerId ? 'current-player' : ''}">
+                        <div>${player.rank || (index + 1)}</div>
+                        <div>${player.full_name || player.player_name || '-'}</div>
+                        <div>${player.elapsed_time_str || '-'}</div>
+                    </div>
+                `;
+            });
+        } else {
+            listHTML = '<div style="color: #888; padding: 10px;">No players yet</div>';
+        }
+
+        playerList.innerHTML = listHTML;
+        return data;
+    } catch (error) {
+        return null;
+    }
+}
+
+// Fetch network status
+async function fetchNetworkStatus() {
+    try {
+        const response = await fetch(theBlackBoxBase + 'network/status');
+        const data = await response.json();
+
+        document.getElementById('wifi-ssid').textContent = data.ssid || '-';
+
+        return data;
+    } catch (error) {
+        return null;
+    }
+}
+
+// Action: Complete current challenge
+async function completeChallenge() {
+    try {
+        const response = await fetch(theBlackBoxBase + 'challenge/action?complete=1');
+        const data = await response.json();
+        addLog('Challenge completed manually', 'warning');
+        refreshStatus();
+    } catch (error) {
+        addLog('Failed to complete challenge: ' + error.message, 'error');
+    }
+}
+
+// Action: Toggle sensor
+async function toggleSensor(sensorId) {
+    try {
+        const response = await fetch(theBlackBoxBase + 'sensors/action?toggle=' + sensorId);
+        const data = await response.json();
+        addLog(`Sensor ${sensorId} toggled`, 'info');
+        fetchSensorStatus();
+    } catch (error) {
+        addLog('Failed to toggle sensor: ' + error.message, 'error');
+    }
+}
+
+// Action: Logout player
+async function logoutPlayer() {
+    if (!confirm('Are you sure you want to logout the current player?')) return;
+    try {
+        const response = await fetch(theBlackBoxBase + 'player/logout');
+        const data = await response.json();
+        addLog('Player logged out', 'warning');
+        refreshStatus();
+    } catch (error) {
+        addLog('Failed to logout player: ' + error.message, 'error');
+    }
+}
+
+// Action: Shutdown app
+async function shutdownApp() {
+    if (!confirm('Are you sure you want to shutdown The BlackBox application?')) return;
+    try {
+        const response = await fetch(theBlackBoxBase + 'action?shutdown=1');
+        addLog('Shutdown command sent', 'error');
+    } catch (error) {
+        addLog('Shutdown command sent (connection closed)', 'error');
+    }
+}
+
+// Refresh all status
+async function refreshStatus() {
+    const indicator = document.getElementById('refresh-indicator');
+    indicator.classList.add('updating');
+
+    await Promise.all([
+        fetchStatus(),
+        fetchChallengeStatus(),
+        fetchBannerData(),
+        fetchSensorStatus(),
+        fetchPlayerList(),
+        fetchNetworkStatus()
+    ]);
+
+    indicator.classList.remove('updating');
+}
+
+// Tip API base URL (same host as admin page)
+var tipApiBase = window.location.protocol + '//' + window.location.host + '/theblackbox/';
+
+// Action: Send tip to player
+async function sendTip() {
+    const messageEl = document.getElementById('tip-message');
+    const statusEl = document.getElementById('tip-status');
+    const message = messageEl.value.trim();
+
+    if (!message) {
+        statusEl.textContent = 'Please enter a tip message';
+        statusEl.style.color = '#c00';
+        return;
+    }
+
+    try {
+        const response = await fetch(tipApiBase + 'tip.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            statusEl.textContent = 'Tip sent! Will display for 10 seconds.';
+            statusEl.style.color = '#0c0';
+            addLog('Tip sent: ' + message.substring(0, 30) + '...', 'info');
+            messageEl.value = '';
+        } else {
+            statusEl.textContent = 'Failed to send tip: ' + (data.error || 'Unknown error');
+            statusEl.style.color = '#c00';
+        }
+    } catch (error) {
+        statusEl.textContent = 'Failed to send tip: ' + error.message;
+        statusEl.style.color = '#c00';
+        addLog('Failed to send tip: ' + error.message, 'error');
+    }
+}
+
+// Action: Clear current tip
+async function clearTip() {
+    const statusEl = document.getElementById('tip-status');
+
+    try {
+        const response = await fetch(tipApiBase + 'tip.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clear: true })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            statusEl.textContent = 'Tip cleared';
+            statusEl.style.color = '#666';
+        }
+    } catch (error) {
+        statusEl.textContent = 'Failed to clear tip';
+        statusEl.style.color = '#c00';
+    }
+}
+
+// Initialize
+addLog('Admin dashboard loaded');
+addLog('API endpoint: ' + theBlackBoxBase);
+refreshStatus();
+
+// Auto-refresh every 2 seconds
+setInterval(refreshStatus, 2000);
+</script>
+
+</body>
+</html>
