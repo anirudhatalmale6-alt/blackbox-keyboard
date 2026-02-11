@@ -22,7 +22,7 @@
 	Enter player name
 	</div>
 	<div class="login-player-entry">
-	<input type="text" id="player-name" style="width: 40%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" />
+	<input type="text" id="player-name" style="width: 40%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" data-osk="name" />
 	</div>
 	</div>
 
@@ -33,7 +33,7 @@
 	Enter PIN
 	</div>
 	<div class="login-player-entry">
-	<input type="password" id="player-pin" style="width: 10%;" oninput="checkPIN(event)" onfocus="oskShow(this)" />
+	<input type="password" id="player-pin" style="width: 10%;" oninput="checkPIN(event)" onfocus="oskShow(this)" data-osk="pin" />
 	</div>
 	</div>
 
@@ -66,7 +66,7 @@
 	Player Name
 	</div>
 	<div class="new-player-entry">
-	<input type="text" id="new-player-name" style="width: 40%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" />
+	<input type="text" id="new-player-name" style="width: 40%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" data-osk="name" />
 	</div>
 	</div>
 
@@ -75,7 +75,7 @@
 	PIN
 	</div>
 	<div class="new-player-entry">
-	<input type="password" id="new-player-pin" style="width: 10%;" oninput="checkPIN(event)" onfocus="oskShow(this)" />
+	<input type="password" id="new-player-pin" style="width: 10%;" oninput="checkPIN(event)" onfocus="oskShow(this)" data-osk="pin" />
 	</div>
 	</div>
 
@@ -84,7 +84,7 @@
 	Full Name
 	</div>
 	<div class="new-player-entry">
-	<input type="text" id="new-player-full-name" style="width: 50%;" oninput="checkFullName(event)" onfocus="oskShow(this)" />
+	<input type="text" id="new-player-full-name" style="width: 50%;" oninput="checkFullName(event)" onfocus="oskShow(this)" data-osk="fullname" />
 	</div>
 	</div>
 
@@ -93,7 +93,7 @@
 	Email Address
 	</div>
 	<div class="new-player-entry">
-	<input type="text" id="new-player-email-address" style="width: 75%;" oninput="checkEmailAddress(event)" onfocus="oskShow(this)" />
+	<input type="text" id="new-player-email-address" style="width: 75%;" oninput="checkEmailAddress(event)" onfocus="oskShow(this)" data-osk="email" />
 	</div>
 	</div>
 
@@ -194,6 +194,44 @@
 var theBlackBoxBaseURL="http://localhost:5000/"
 var oskActiveInput=null;
 var oskShiftOn=false;
+var oskMode='all';
+
+var oskModes={
+	pin:{allow:'0123456789',hideLetters:true,hideAt:true,hideDot:true,hideShift:true,hideSpace:true},
+	name:{allow:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_ ',hideAt:true,hideDot:true},
+	fullname:{allow:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ',hideAt:true,hideDot:true},
+	email:{allow:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_@.',hideSpace:true}
+};
+
+function oskApplyMode(mode){
+	oskMode=mode;
+	var cfg=oskModes[mode]||null;
+	var btns=document.getElementById('osk-overlay').querySelectorAll('button');
+	for(var i=0;i<btns.length;i++){
+		var oc=btns[i].getAttribute('onclick')||'';
+		var m=oc.match(/oskPress\('([^']+)'\)/);
+		if(!m)continue;
+		var key=m[1];
+		if(key=='DONE'||key=='DEL'){btns[i].style.opacity='1';btns[i].disabled=false;continue;}
+		if(!cfg){btns[i].style.opacity='1';btns[i].disabled=false;continue;}
+		var allowed=true;
+		if(key=='SPACE'){allowed=!cfg.hideSpace;}
+		else if(key=='@'){allowed=!cfg.hideAt;}
+		else if(key=='.'){allowed=!cfg.hideDot;}
+		else if(key.length==1&&key>='A'&&key<='Z'){allowed=!cfg.hideLetters;}
+		if(allowed&&cfg.allow){allowed=cfg.allow.indexOf(key.toUpperCase())>=0||cfg.allow.indexOf(key)>=0;}
+		if(allowed){
+			btns[i].style.opacity='1';
+			btns[i].disabled=false;
+		}else{
+			btns[i].style.opacity='0.2';
+			btns[i].disabled=true;
+		}
+	}
+	var shiftBtn=document.getElementById('osk-shift-btn');
+	if(cfg&&cfg.hideShift){shiftBtn.style.opacity='0.2';shiftBtn.disabled=true;}
+	else{shiftBtn.style.opacity='1';shiftBtn.disabled=false;}
+}
 
 function oskGetLabel(inp){
 	var row=inp.closest('.login-player-details,.new-player-details');
@@ -214,6 +252,7 @@ function oskShow(inp){
 	document.getElementById('osk-overlay').style.display='block';
 	document.getElementById('osk-preview-label').textContent=oskGetLabel(inp);
 	oskUpdatePreview();
+	oskApplyMode(inp.getAttribute('data-osk')||'all');
 	setTimeout(function(){
 		inp.scrollIntoView({behavior:'smooth',block:'center'});
 	},100);
@@ -226,6 +265,11 @@ function oskPress(key){
 	if(!oskActiveInput)return;
 	if(key=='DONE'){oskHide();return;}
 	if(key=='DEL'){oskActiveInput.value=oskActiveInput.value.slice(0,-1);oskFireInput();return;}
+	var cfg=oskModes[oskMode]||null;
+	if(cfg&&cfg.allow){
+		var ck=(key=='SPACE')?' ':key;
+		if(cfg.allow.indexOf(ck.toUpperCase())<0&&cfg.allow.indexOf(ck)<0)return;
+	}
 	if(key=='SPACE'){oskActiveInput.value+=' ';oskFireInput();return;}
 	oskActiveInput.value+=oskShiftOn?key.toUpperCase():key.toLowerCase();
 	oskFireInput();
