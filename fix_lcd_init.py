@@ -28,9 +28,13 @@ new_init = """            # Initialisation routine
             # These must be single 4-bit writes (not full 8-bit commands)
             # to properly switch LCD from 8-bit to 4-bit mode
             self._lcd_write_four_bits(0x30)
+            sleep(0.005)  # HD44780 requires >4.1ms after first init
             self._lcd_write_four_bits(0x30)
+            sleep(0.005)  # HD44780 requires >100us after second init
             self._lcd_write_four_bits(0x30)
-            self._lcd_write_four_bits(0x20)"""
+            sleep(0.001)
+            self._lcd_write_four_bits(0x20)
+            sleep(0.001)"""
 
 if old_init in content:
     content = content.replace(old_init, new_init)
