@@ -2,9 +2,6 @@
 export DISPLAY=:0
 export XAUTHORITY=/home/pi/.Xauthority
 
-# Clear LCD on startup
-sleep 3 && sudo python3 /opt/theblackbox/lcd_clear.py
-
 # Kill any existing Firefox processes to prevent port 2828 conflict
 pkill -9 -f firefox-esr 2>/dev/null || true
 pkill -9 -f firefox 2>/dev/null || true
@@ -44,6 +41,11 @@ break
 fi
 sleep 1
 done
+
+# Extra wait for Marionette actors to fully initialize
+# Port 2828 opens before internal actors are ready
+echo "Waiting for Marionette actors to initialize..."
+sleep 10
 
 # Start TheBlackBox (it will control the browser)
 cd /opt/theblackbox
