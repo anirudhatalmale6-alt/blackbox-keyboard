@@ -45,7 +45,7 @@ done
 # Extra wait for Marionette actors to fully initialize
 # Port 2828 opens before internal actors are ready
 echo "Waiting for Marionette actors to initialize..."
-sleep 10
+sleep 5
 
 # Start TheBlackBox (it will control the browser)
 cd /opt/theblackbox
@@ -72,7 +72,7 @@ sleep 1
 done
 
 # Extra buffer for Firefox to render
-sleep 15
+sleep 5
 
 # NOW hide Plymouth
 plymouth --quit 2>/dev/null
