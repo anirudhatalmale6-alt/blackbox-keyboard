@@ -24,49 +24,16 @@ body {
     object-fit: cover;
 }
 
-/* Switch area - positioned over the electrical box in the image */
-#switch-area {
+/* Invisible touch zone over the lever in the image */
+#switch-zone {
     position: absolute;
-    left: 5%;
-    top: 45%;
-    width: 60px;
-    height: 100px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    left: 3%;
+    top: 38%;
+    width: 14%;
+    height: 22%;
     z-index: 10;
-}
-
-#switch-track {
-    width: 36px;
-    height: 80px;
-    background: #1a1a1a;
-    border: 2px solid #444;
-    border-radius: 8px;
-    position: relative;
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
-}
-
-#switch-handle {
-    width: 32px;
-    height: 36px;
-    background: linear-gradient(180deg, #888 0%, #555 100%);
-    border: 1px solid #666;
-    border-radius: 5px;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 2px;
     cursor: pointer;
-    transition: bottom 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-#switch-handle.on {
-    bottom: 42px;
-    background: linear-gradient(180deg, #ffcc00 0%, #cc9900 100%);
-    box-shadow: 0 0 10px rgba(255,200,0,0.5);
+    /* Invisible - no background, no border */
 }
 
 /* Code input area - bottom right */
@@ -80,10 +47,10 @@ body {
 }
 
 #code-input {
-    width: 140px;
+    width: 160px;
     padding: 10px 12px;
     font-size: 1.1em;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.8);
     color: #fff;
     border: 2px solid #555;
     border-radius: 6px;
@@ -98,8 +65,8 @@ body {
 
 #code-submit {
     margin-top: 8px;
-    padding: 8px 20px;
-    font-size: 1em;
+    padding: 10px 28px;
+    font-size: 1.1em;
     background: #c0392b;
     color: #fff;
     border: none;
@@ -131,6 +98,86 @@ body {
     display: none;
 }
 
+/* On-screen keyboard */
+#osk {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    background: #111;
+    border-top: 2px solid #c00;
+    padding: 5px;
+    display: none;
+}
+
+#osk-preview {
+    background: #1a1a1a;
+    border: 1px solid #c00;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-bottom: 5px;
+    color: #fff;
+    font-size: 14px;
+    font-family: monospace;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#osk-preview-label { color: #888; font-size: 11px; white-space: nowrap; }
+#osk-preview-value { color: #fff; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.osk-row {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 3px;
+    justify-content: center;
+}
+
+.osk-key {
+    height: 42px;
+    background: #222;
+    border: 1px solid #600;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    flex: 1;
+    max-width: 42px;
+}
+
+.osk-key:active {
+    background: #444;
+}
+
+.osk-key.special {
+    max-width: 80px;
+    flex: 1.5;
+}
+
+.osk-key.del {
+    background: #300;
+    border-color: #c00;
+    color: #c00;
+    font-size: 11px;
+}
+
+.osk-key.done {
+    background: #030;
+    border-color: #0c0;
+    color: #0c0;
+    font-size: 12px;
+    max-width: none;
+    flex: 1;
+}
+
+.osk-key.space {
+    max-width: none;
+    flex: 3;
+}
+
 /* Hint text */
 #hint-text {
     position: absolute;
@@ -150,14 +197,11 @@ body {
 
 <img id="mansion-img" src="mansion_off.jpg" alt="Mansion">
 
-<div id="switch-area">
-    <div id="switch-track">
-        <div id="switch-handle" ontouchstart="toggleSwitch(event)" onclick="toggleSwitch(event)"></div>
-    </div>
-</div>
+<!-- Invisible touch zone over the lever in the image -->
+<div id="switch-zone" ontouchstart="toggleSwitch(event)" onclick="toggleSwitch(event)"></div>
 
 <div id="code-area">
-    <input type="text" id="code-input" placeholder="Code..." maxlength="10" autocomplete="off" />
+    <input type="text" id="code-input" placeholder="Code..." maxlength="10" autocomplete="off" readonly onfocus="showOsk()" ontouchstart="showOsk()" />
     <br>
     <button id="code-submit" onclick="checkCode()">OK</button>
     <div id="code-error">Verkeerde code! Even wachten...</div>
@@ -165,6 +209,50 @@ body {
 </div>
 
 <div id="hint-text">Vind de schakelaar</div>
+
+<!-- On-screen keyboard -->
+<div id="osk">
+<div id="osk-preview">
+<span id="osk-preview-label">Code</span>
+<span id="osk-preview-value"></span>
+</div>
+<div class="osk-row">
+<button type="button" class="osk-key" onclick="oskType('q')">q</button>
+<button type="button" class="osk-key" onclick="oskType('w')">w</button>
+<button type="button" class="osk-key" onclick="oskType('e')">e</button>
+<button type="button" class="osk-key" onclick="oskType('r')">r</button>
+<button type="button" class="osk-key" onclick="oskType('t')">t</button>
+<button type="button" class="osk-key" onclick="oskType('y')">y</button>
+<button type="button" class="osk-key" onclick="oskType('u')">u</button>
+<button type="button" class="osk-key" onclick="oskType('i')">i</button>
+<button type="button" class="osk-key" onclick="oskType('o')">o</button>
+<button type="button" class="osk-key" onclick="oskType('p')">p</button>
+</div>
+<div class="osk-row">
+<button type="button" class="osk-key" onclick="oskType('a')">a</button>
+<button type="button" class="osk-key" onclick="oskType('s')">s</button>
+<button type="button" class="osk-key" onclick="oskType('d')">d</button>
+<button type="button" class="osk-key" onclick="oskType('f')">f</button>
+<button type="button" class="osk-key" onclick="oskType('g')">g</button>
+<button type="button" class="osk-key" onclick="oskType('h')">h</button>
+<button type="button" class="osk-key" onclick="oskType('j')">j</button>
+<button type="button" class="osk-key" onclick="oskType('k')">k</button>
+<button type="button" class="osk-key" onclick="oskType('l')">l</button>
+</div>
+<div class="osk-row">
+<button type="button" class="osk-key" onclick="oskType('z')">z</button>
+<button type="button" class="osk-key" onclick="oskType('x')">x</button>
+<button type="button" class="osk-key" onclick="oskType('c')">c</button>
+<button type="button" class="osk-key" onclick="oskType('v')">v</button>
+<button type="button" class="osk-key" onclick="oskType('b')">b</button>
+<button type="button" class="osk-key" onclick="oskType('n')">n</button>
+<button type="button" class="osk-key" onclick="oskType('m')">m</button>
+<button type="button" class="osk-key del special" onclick="oskDel()">WISSEN</button>
+</div>
+<div class="osk-row">
+<button type="button" class="osk-key done" onclick="oskDone()">KLAAR</button>
+</div>
+</div>
 
 <script type="text/javascript">
 var theBlackBoxBase = "http://127.0.0.1:5000/";
@@ -175,12 +263,9 @@ var correctCode = "ikzieje";
 
 function toggleSwitch(e) {
     if (e) e.preventDefault();
-    if (switchOn) return; // Can't turn off once on
+    if (switchOn) return;
 
     switchOn = true;
-
-    // Visual: move switch handle up
-    document.getElementById('switch-handle').classList.add('on');
 
     // Change mansion image to lights on
     document.getElementById('mansion-img').src = 'mansion_on_fixed.jpg';
@@ -196,8 +281,35 @@ function toggleSwitch(e) {
     // Show code input after a short delay
     setTimeout(function() {
         document.getElementById('code-area').style.display = 'block';
-        document.getElementById('code-input').focus();
     }, 1500);
+}
+
+function showOsk() {
+    if (locked) return;
+    document.getElementById('osk').style.display = 'block';
+    oskUpdatePreview();
+}
+
+function oskType(ch) {
+    if (locked) return;
+    var inp = document.getElementById('code-input');
+    if (inp.value.length >= 10) return;
+    inp.value += ch;
+    oskUpdatePreview();
+}
+
+function oskDel() {
+    var inp = document.getElementById('code-input');
+    inp.value = inp.value.slice(0, -1);
+    oskUpdatePreview();
+}
+
+function oskDone() {
+    document.getElementById('osk').style.display = 'none';
+}
+
+function oskUpdatePreview() {
+    document.getElementById('osk-preview-value').textContent = document.getElementById('code-input').value || '\u00a0';
 }
 
 function checkCode() {
@@ -211,6 +323,7 @@ function checkCode() {
         document.getElementById('code-submit').innerText = 'Correct!';
         document.getElementById('code-error').style.display = 'none';
         document.getElementById('code-input').disabled = true;
+        document.getElementById('osk').style.display = 'none';
 
         // Turn off GPIO (LED off)
         fetch(gpioBase + 'gpio/set?pin=17&state=0').catch(function(e) {});
@@ -225,10 +338,11 @@ function checkCode() {
         // Wrong code - lock for 1 minute
         locked = true;
         document.getElementById('code-input').value = '';
-        document.getElementById('code-input').disabled = true;
         document.getElementById('code-submit').disabled = true;
         document.getElementById('code-error').style.display = 'block';
         document.getElementById('code-timer').style.display = 'block';
+        document.getElementById('osk').style.display = 'none';
+        oskUpdatePreview();
 
         var seconds = 60;
         document.getElementById('code-timer').innerText = seconds + ' seconden...';
@@ -239,20 +353,13 @@ function checkCode() {
             if (seconds <= 0) {
                 clearInterval(timer);
                 locked = false;
-                document.getElementById('code-input').disabled = false;
                 document.getElementById('code-submit').disabled = false;
                 document.getElementById('code-error').style.display = 'none';
                 document.getElementById('code-timer').style.display = 'none';
-                document.getElementById('code-input').focus();
             }
         }, 1000);
     }
 }
-
-// Allow Enter key to submit code
-document.getElementById('code-input').addEventListener('keyup', function(e) {
-    if (e.key === 'Enter') checkCode();
-});
 </script>
 
 </body>
