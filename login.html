@@ -3,41 +3,375 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" type="text/css" href="theblackbox.css">
+<style>
+/* ========== LOCAL FONT ========== */
+@font-face {
+	font-family: 'Creepster';
+	src: url('Creepster-Regular.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+/* ========== HORROR ANIMATIONS ========== */
+@keyframes flicker {
+	0%, 100% { opacity: 1; }
+	41% { opacity: 1; }
+	42% { opacity: 0.3; }
+	43% { opacity: 1; }
+	44% { opacity: 0.7; }
+	45% { opacity: 1; }
+	80% { opacity: 1; }
+	81% { opacity: 0.2; }
+	82% { opacity: 1; }
+}
+
+@keyframes pulseGlow {
+	0%, 100% { box-shadow: 0 0 8px rgba(200, 0, 0, 0.4); }
+	50% { box-shadow: 0 0 20px rgba(200, 0, 0, 0.8), 0 0 40px rgba(150, 0, 0, 0.3); }
+}
+
+@keyframes fogDrift {
+	0% { background-position: 0% 50%, 100% 50%; }
+	50% { background-position: 100% 50%, 0% 50%; }
+	100% { background-position: 0% 50%, 100% 50%; }
+}
+
+@keyframes bloodDrip {
+	0% { transform: scaleY(0); opacity: 0; }
+	10% { transform: scaleY(1); opacity: 1; }
+	90% { transform: scaleY(1); opacity: 1; }
+	100% { transform: scaleY(0); opacity: 0; }
+}
+
+@keyframes subtlePulse {
+	0%, 100% { border-color: #500; }
+	50% { border-color: #c00; }
+}
+
+@keyframes btnHoverPulse {
+	0%, 100% { box-shadow: 0 0 15px rgba(200, 0, 0, 0.5), inset 0 0 10px rgba(200, 0, 0, 0.1); }
+	50% { box-shadow: 0 0 30px rgba(200, 0, 0, 0.8), 0 0 60px rgba(150, 0, 0, 0.3), inset 0 0 15px rgba(200, 0, 0, 0.2); }
+}
+
+@keyframes clownFlash {
+	0% { opacity: 0; }
+	10% { opacity: 0.85; }
+	90% { opacity: 0.85; }
+	100% { opacity: 0; }
+}
+
+@keyframes titleGlow {
+	0%, 100% { text-shadow: 0 0 10px #c00, 0 0 20px #800, 0 0 40px #400; }
+	50% { text-shadow: 0 0 20px #f00, 0 0 40px #c00, 0 0 80px #800; }
+}
+
+/* ========== BASE STYLES ========== */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	background: radial-gradient(ellipse at center, #1a0a0a 0%, #0d0505 40%, #050202 70%, #000 100%);
+	color: #ccc;
+	font-family: 'Segoe UI', Arial, sans-serif;
+	font-size: 14px;
+	min-height: 100vh;
+	overflow-x: hidden;
+	position: relative;
+}
+
+/* Fog / smoke overlay */
+body::before {
+	content: '';
+	position: fixed;
+	top: 0; left: 0;
+	width: 200%; height: 200%;
+	background:
+		radial-gradient(ellipse at 20% 50%, rgba(100, 0, 0, 0.08) 0%, transparent 50%),
+		radial-gradient(ellipse at 80% 50%, rgba(80, 0, 0, 0.06) 0%, transparent 50%);
+	animation: fogDrift 20s ease-in-out infinite;
+	pointer-events: none;
+	z-index: 0;
+}
+
+/* ========== CLOWN FLASH OVERLAY ========== */
+#clown-flash {
+	display: none;
+	position: fixed;
+	top: 0; left: 0;
+	width: 100%; height: 100%;
+	z-index: 99998;
+	background: url('clown.jpg') center center / cover no-repeat;
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* ========== TABS ========== */
+.tab {
+	display: flex;
+	justify-content: center;
+	gap: 0;
+	padding: 15px 10px 0 10px;
+	position: relative;
+	z-index: 2;
+}
+
+.tablinks {
+	font-family: 'Creepster', cursive;
+	font-size: 1.3em;
+	letter-spacing: 2px;
+	background: transparent;
+	color: #888;
+	border: none;
+	border-bottom: 2px solid #300;
+	padding: 10px 18px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	text-transform: uppercase;
+	flex: 1;
+	max-width: 160px;
+}
+
+.tablinks:hover {
+	color: #c00;
+	border-bottom-color: #c00;
+}
+
+.tablinks.active {
+	color: #f44;
+	border-bottom-color: #f44;
+	animation: flicker 4s ease-in-out infinite;
+}
+
+/* ========== TAB CONTENT ========== */
+.tabcontent {
+	display: none;
+	padding: 15px;
+	position: relative;
+	z-index: 2;
+}
+
+/* ========== HORROR TITLE ========== */
+.horror-title {
+	font-family: 'Creepster', cursive;
+	font-size: 2em;
+	color: #e00;
+	text-align: center;
+	margin: 15px 0 5px 0;
+	letter-spacing: 4px;
+	text-transform: uppercase;
+	animation: titleGlow 3s ease-in-out infinite, flicker 5s ease-in-out infinite;
+}
+
+.horror-subtitle {
+	font-family: 'Creepster', cursive;
+	font-size: 1em;
+	color: #666;
+	text-align: center;
+	margin-bottom: 15px;
+	letter-spacing: 2px;
+	font-style: italic;
+}
+
+/* ========== FORM ROWS ========== */
+.login-player-details, .new-player-details {
+	display: flex;
+	align-items: center;
+	margin: 8px 15px;
+	gap: 10px;
+}
+
+.login-player-text, .new-player-text {
+	font-family: 'Creepster', cursive;
+	font-size: 1.1em;
+	color: #a88;
+	width: 130px;
+	text-align: right;
+	letter-spacing: 1px;
+	flex-shrink: 0;
+}
+
+.login-player-entry, .new-player-entry {
+	flex: 1;
+}
+
+/* ========== HORROR INPUT FIELDS ========== */
+input[type="text"],
+input[type="password"] {
+	background: rgba(20, 5, 5, 0.9);
+	border: 2px solid #500;
+	border-radius: 6px;
+	color: #f88;
+	font-size: 1.1em;
+	padding: 10px 14px;
+	outline: none;
+	transition: all 0.3s ease;
+	animation: subtlePulse 3s ease-in-out infinite;
+	font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+	border-color: #c00;
+	box-shadow: 0 0 15px rgba(200, 0, 0, 0.5), inset 0 0 5px rgba(200, 0, 0, 0.1);
+	animation: pulseGlow 2s ease-in-out infinite;
+}
+
+input[type="text"]::placeholder,
+input[type="password"]::placeholder {
+	color: #533;
+}
+
+/* ========== HORROR BUTTONS ========== */
+input[type="button"], .horror-btn {
+	font-family: 'Creepster', cursive;
+	font-size: 1.4em !important;
+	letter-spacing: 3px;
+	background: linear-gradient(180deg, #3a0a0a, #1a0505);
+	color: #f44 !important;
+	border: 2px solid #800 !important;
+	border-radius: 8px;
+	padding: 14px 40px !important;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	text-transform: uppercase;
+	animation: btnHoverPulse 3s ease-in-out infinite;
+}
+
+input[type="button"]:hover, .horror-btn:hover {
+	background: linear-gradient(180deg, #4a0f0f, #2a0808);
+	color: #ff6666 !important;
+	border-color: #c00 !important;
+	transform: scale(1.03);
+}
+
+input[type="button"]:active, .horror-btn:active {
+	transform: scale(0.97);
+	background: linear-gradient(180deg, #2a0505, #0a0202);
+}
+
+/* ========== ERROR MESSAGES ========== */
+#login-player-error, #new-player-error {
+	color: #ff4444;
+	font-family: 'Creepster', cursive;
+	font-size: 1.1em;
+	letter-spacing: 1px;
+	text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+	padding: 8px;
+	border-left: 3px solid #c00;
+	background: rgba(100, 0, 0, 0.15);
+	border-radius: 0 6px 6px 0;
+}
+
+/* ========== INTRO PANEL ========== */
+#panel-intro {
+	background: rgba(10, 2, 2, 0.95);
+	position: relative;
+	z-index: 2;
+}
+
+#panel-intro h2 {
+	font-family: 'Creepster', cursive;
+	color: #e00;
+	animation: flicker 4s ease-in-out infinite;
+}
+
+#panel-intro ul li {
+	color: #bbb;
+	border-bottom-color: #300 !important;
+}
+
+#panel-intro ul li span {
+	color: #c00 !important;
+}
+
+#btn-begrepen {
+	font-family: 'Creepster', cursive !important;
+	font-size: 1.8em !important;
+	background: linear-gradient(180deg, #5a0a0a, #2a0505) !important;
+	color: #fff !important;
+	border: 3px solid #c00 !important;
+	border-radius: 10px;
+	padding: 20px 60px !important;
+	cursor: pointer;
+	text-transform: uppercase;
+	letter-spacing: 4px;
+	animation: btnHoverPulse 2s ease-in-out infinite;
+	transition: all 0.3s ease;
+}
+
+#btn-begrepen:hover {
+	background: linear-gradient(180deg, #7a0f0f, #3a0808) !important;
+	transform: scale(1.05);
+}
+
+/* ========== MESSAGE PANEL ========== */
+#message-block {
+	font-family: 'Creepster', cursive;
+	font-size: 2em;
+	color: #c00;
+	letter-spacing: 3px;
+	animation: flicker 3s ease-in-out infinite;
+}
+
+/* ========== ON-SCREEN KEYBOARD (HORROR STYLE) ========== */
+#osk-overlay {
+	background: linear-gradient(180deg, #0a0202 0%, #150505 100%) !important;
+	border-top: 2px solid #600 !important;
+}
+
+#osk-preview {
+	background: rgba(20, 5, 5, 0.95) !important;
+	border: 1px solid #600 !important;
+	color: #f88 !important;
+}
+
+#osk-preview-label {
+	color: #744 !important;
+	font-family: 'Creepster', cursive;
+	letter-spacing: 1px;
+}
+
+#osk-preview-value {
+	color: #f88 !important;
+}
+</style>
 </head>
 <body>
 
 <!-- Background music - plays on login screen and intro rules -->
 <audio id="login-music" src="hauntedintro.mp3" preload="auto" loop></audio>
 
+<!-- Clown flash overlay -->
+<div id="clown-flash"></div>
+
 <div class="tab">
-	<button class="tablinks" onclick="openPanel(event, 'panel-login')" id="defaultOpen">Inloggen</button>
-	<button class="tablinks" onclick="openPanel(event, 'panel-new-player')">Nieuwe Speler</button>
+	<button class="tablinks" onclick="openPanel(event, 'panel-login')" id="defaultOpen">Overlevenden</button>
+	<button class="tablinks" onclick="openPanel(event, 'panel-new-player')">Nieuw Slachtoffer</button>
 	<button class="tablinks" onclick="loadHighScorePage()">Highscore</button>
 </div>
 
 <div id="panel-login" class="tabcontent">
-	<h3>Inloggen</h3>
-
-	<br />
-
-	<div class="login-player-details">
-	<div class="login-player-text">
-	Spelersnaam
-	</div>
-	<div class="login-player-entry">
-	<input type="text" id="player-name" style="width: 40%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" data-osk="name" />
-	</div>
-	</div>
-
-	<br />
+	<div class="horror-title">Betreed het Theater</div>
+	<div class="horror-subtitle">...als je durft</div>
 
 	<div class="login-player-details">
 	<div class="login-player-text">
-	PIN code
+	Naam
 	</div>
 	<div class="login-player-entry">
-	<input type="password" id="player-pin" style="width: 20%;" oninput="checkPIN(event)" onfocus="oskShow(this)" data-osk="pin" />
+	<input type="text" id="player-name" style="width: 55%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" data-osk="name" placeholder="Wie ben jij..." />
+	</div>
+	</div>
+
+	<div class="login-player-details">
+	<div class="login-player-text">
+	Toegangscode
+	</div>
+	<div class="login-player-entry">
+	<input type="password" id="player-pin" style="width: 35%;" oninput="checkPIN(event)" onfocus="oskShow(this)" data-osk="pin" placeholder="****" />
 	</div>
 	</div>
 
@@ -47,11 +381,9 @@
 	<div class="login-player-text">
 	</div>
 	<div class="login-player-entry">
-	<input type="button" id="login" value="Inloggen" onclick="playerLogin()" style="font-size:1.3em;padding:12px 40px;" />
+	<input type="button" id="login" value="Binnenkomen" onclick="playerLogin()" />
 	</div>
 	</div>
-
-	<br />
 
 	<div class="login-player-details">
         <div class="login-player-text">
@@ -62,42 +394,42 @@
 </div>
 
 <div id="panel-new-player" class="tabcontent">
-	<h3>Nieuwe Speler</h3>
-	<p>Vul je gegevens in.</p>
+	<div class="horror-title">Nieuw Slachtoffer</div>
+	<div class="horror-subtitle">Registreer je... voor altijd</div>
 
 	<div class="new-player-details">
 	<div class="new-player-text">
-	Spelersnaam
+	Slachtoffernaam
 	</div>
 	<div class="new-player-entry">
-	<input type="text" id="new-player-name" style="width: 40%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" data-osk="name" />
-	</div>
-	</div>
-
-	<div class="new-player-details">
-	<div class="new-player-text">
-	PIN code
-	</div>
-	<div class="new-player-entry">
-	<input type="password" id="new-player-pin" style="width: 20%;" oninput="checkPIN(event)" onfocus="oskShow(this)" data-osk="pin" />
+	<input type="text" id="new-player-name" style="width: 50%;" oninput="checkPlayerName(event)" onfocus="oskShow(this)" data-osk="name" placeholder="Jouw naam..." />
 	</div>
 	</div>
 
 	<div class="new-player-details">
 	<div class="new-player-text">
-	Volledige Naam
+	Geheime Code
 	</div>
 	<div class="new-player-entry">
-	<input type="text" id="new-player-full-name" style="width: 50%;" oninput="checkFullName(event)" onfocus="oskShow(this)" data-osk="fullname" />
+	<input type="password" id="new-player-pin" style="width: 30%;" oninput="checkPIN(event)" onfocus="oskShow(this)" data-osk="pin" placeholder="4 cijfers" />
 	</div>
 	</div>
 
 	<div class="new-player-details">
 	<div class="new-player-text">
-	E-mailadres
+	Echte Naam
 	</div>
 	<div class="new-player-entry">
-	<input type="text" id="new-player-email-address" style="width: 75%;" oninput="checkEmailAddress(event)" onfocus="oskShow(this)" data-osk="email" />
+	<input type="text" id="new-player-full-name" style="width: 55%;" oninput="checkFullName(event)" onfocus="oskShow(this)" data-osk="fullname" placeholder="Volledige naam..." />
+	</div>
+	</div>
+
+	<div class="new-player-details">
+	<div class="new-player-text">
+	E-mail
+	</div>
+	<div class="new-player-entry">
+	<input type="text" id="new-player-email-address" style="width: 70%;" oninput="checkEmailAddress(event)" onfocus="oskShow(this)" data-osk="email" placeholder="optioneel..." />
 	</div>
 	</div>
 
@@ -107,11 +439,9 @@
 	<div class="new-player-text">
 	</div>
 	<div class="new-player-entry">
-	<input type="button" id="submit" value="Registreren" onclick="playerCreate()" style="font-size:1.3em;padding:12px 40px;" />
+	<input type="button" id="submit" value="Waag de Stap" onclick="playerCreate()" />
 	</div>
 	</div>
-
-	<br />
 
 	<div class="new-player-details">
 	<div class="new-player-text">
@@ -136,75 +466,75 @@
 
 <div id="panel-intro" class="tabcontent" style="display:none;">
 	<div style="max-width:420px;margin:0 auto;padding:10px 20px;text-align:center;">
-		<h2 style="color:#fff;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;font-size:1.2em;">Welkom bij The Black Box</h2>
+		<h2 style="color:#e00;text-transform:uppercase;letter-spacing:3px;margin-bottom:12px;font-size:1.3em;font-family:'Creepster',cursive;">De regels van het spel</h2>
 		<ul style="text-align:left;list-style:none;padding:0;margin:10px 0;">
-			<li style="padding:6px 0;border-bottom:1px solid #222;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Vanaf nu is <strong>alles</strong> wat je ziet onderdeel van het spel</li>
-			<li style="padding:6px 0;border-bottom:1px solid #222;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Elke pagina, elke opdracht en elke interactie telt mee voor je eindscore</li>
-			<li style="padding:6px 0;border-bottom:1px solid #222;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> De tijd loopt vanaf nu - wees snel maar zorgvuldig</li>
-			<li style="padding:6px 0;border-bottom:1px solid #222;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Gebruik alles om je heen: je telefoon, het scherm en de aanwijzingen</li>
-			<li style="padding:6px 0;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Het spel eindigt pas als alle challenges zijn voltooid</li>
+			<li style="padding:6px 0;border-bottom:1px solid #300;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;color:#bbb;"><span style="position:absolute;left:0;color:#c00;">&#9760;</span> Vanaf nu is <strong style="color:#f88;">alles</strong> wat je ziet onderdeel van het spel</li>
+			<li style="padding:6px 0;border-bottom:1px solid #300;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;color:#bbb;"><span style="position:absolute;left:0;color:#c00;">&#9760;</span> Elke pagina, elke opdracht en elke interactie telt mee voor je eindscore</li>
+			<li style="padding:6px 0;border-bottom:1px solid #300;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;color:#bbb;"><span style="position:absolute;left:0;color:#c00;">&#9760;</span> De tijd loopt vanaf nu - wees snel maar zorgvuldig</li>
+			<li style="padding:6px 0;border-bottom:1px solid #300;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;color:#bbb;"><span style="position:absolute;left:0;color:#c00;">&#9760;</span> Gebruik alles om je heen: je telefoon, het scherm en de aanwijzingen</li>
+			<li style="padding:6px 0;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;color:#bbb;"><span style="position:absolute;left:0;color:#c00;">&#9760;</span> Het spel eindigt pas als alle challenges zijn voltooid</li>
 		</ul>
-		<p style="color:#888;font-size:0.8em;font-style:italic;margin-top:10px;">Succes... je gaat het nodig hebben.</p>
-		<button id="btn-begrepen" onclick="introBegrepen()" style="margin-top:15px;padding:18px 60px;font-size:1.5em;font-weight:bold;background:#c0392b;color:#fff;border:none;border-radius:8px;cursor:pointer;text-transform:uppercase;letter-spacing:2px;box-shadow:0 0 15px rgba(192,57,43,0.5);">Begrepen</button>
+		<p style="color:#744;font-size:0.85em;font-style:italic;margin-top:10px;font-family:'Creepster',cursive;letter-spacing:1px;">Succes... je gaat het nodig hebben.</p>
+		<button id="btn-begrepen" onclick="introBegrepen()" style="margin-top:15px;">Begrepen</button>
 	</div>
 </div>
 
-<div id="osk-overlay" style="display:none;position:fixed;bottom:0;left:0;width:100%;z-index:9999;background:#111;border-top:2px solid #c00;padding:5px;box-sizing:border-box;">
-<div id="osk-preview" style="background:#1a1a1a;border:1px solid #c00;border-radius:4px;padding:6px 10px;margin-bottom:5px;color:#fff;font-size:14px;font-family:monospace;min-height:20px;display:flex;align-items:center;gap:8px;">
-<span id="osk-preview-label" style="color:#888;font-size:11px;white-space:nowrap;"></span>
-<span id="osk-preview-value" style="color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+<div id="osk-overlay" style="display:none;position:fixed;bottom:0;left:0;width:100%;z-index:9999;background:linear-gradient(180deg,#0a0202,#150505);border-top:2px solid #600;padding:5px;box-sizing:border-box;">
+<div id="osk-preview" style="background:rgba(20,5,5,0.95);border:1px solid #600;border-radius:4px;padding:6px 10px;margin-bottom:5px;color:#f88;font-size:14px;font-family:monospace;min-height:20px;display:flex;align-items:center;gap:8px;">
+<span id="osk-preview-label" style="color:#744;font-size:11px;white-space:nowrap;font-family:'Creepster',cursive;letter-spacing:1px;"></span>
+<span id="osk-preview-value" style="color:#f88;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
 </div>
 <div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;" id="osk-row-num">
-<button type="button" data-key="1" onclick="oskPress('1')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">1</button>
-<button type="button" data-key="2" onclick="oskPress('2')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">2</button>
-<button type="button" data-key="3" onclick="oskPress('3')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">3</button>
-<button type="button" data-key="4" onclick="oskPress('4')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">4</button>
-<button type="button" data-key="5" onclick="oskPress('5')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">5</button>
-<button type="button" data-key="6" onclick="oskPress('6')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">6</button>
-<button type="button" data-key="7" onclick="oskPress('7')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">7</button>
-<button type="button" data-key="8" onclick="oskPress('8')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">8</button>
-<button type="button" data-key="9" onclick="oskPress('9')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">9</button>
-<button type="button" data-key="0" onclick="oskPress('0')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">0</button>
+<button type="button" data-key="1" onclick="oskPress('1')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">1</button>
+<button type="button" data-key="2" onclick="oskPress('2')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">2</button>
+<button type="button" data-key="3" onclick="oskPress('3')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">3</button>
+<button type="button" data-key="4" onclick="oskPress('4')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">4</button>
+<button type="button" data-key="5" onclick="oskPress('5')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">5</button>
+<button type="button" data-key="6" onclick="oskPress('6')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">6</button>
+<button type="button" data-key="7" onclick="oskPress('7')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">7</button>
+<button type="button" data-key="8" onclick="oskPress('8')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">8</button>
+<button type="button" data-key="9" onclick="oskPress('9')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">9</button>
+<button type="button" data-key="0" onclick="oskPress('0')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">0</button>
 </div>
 <div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;" id="osk-row-q">
-<button type="button" data-key="Q" onclick="oskPress('Q')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">q</button>
-<button type="button" data-key="W" onclick="oskPress('W')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">w</button>
-<button type="button" data-key="E" onclick="oskPress('E')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">e</button>
-<button type="button" data-key="R" onclick="oskPress('R')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">r</button>
-<button type="button" data-key="T" onclick="oskPress('T')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">t</button>
-<button type="button" data-key="Y" onclick="oskPress('Y')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">y</button>
-<button type="button" data-key="U" onclick="oskPress('U')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">u</button>
-<button type="button" data-key="I" onclick="oskPress('I')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">i</button>
-<button type="button" data-key="O" onclick="oskPress('O')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">o</button>
-<button type="button" data-key="P" onclick="oskPress('P')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">p</button>
+<button type="button" data-key="Q" onclick="oskPress('Q')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">q</button>
+<button type="button" data-key="W" onclick="oskPress('W')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">w</button>
+<button type="button" data-key="E" onclick="oskPress('E')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">e</button>
+<button type="button" data-key="R" onclick="oskPress('R')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">r</button>
+<button type="button" data-key="T" onclick="oskPress('T')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">t</button>
+<button type="button" data-key="Y" onclick="oskPress('Y')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">y</button>
+<button type="button" data-key="U" onclick="oskPress('U')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">u</button>
+<button type="button" data-key="I" onclick="oskPress('I')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">i</button>
+<button type="button" data-key="O" onclick="oskPress('O')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">o</button>
+<button type="button" data-key="P" onclick="oskPress('P')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">p</button>
 </div>
 <div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;" id="osk-row-a">
-<button type="button" data-key="A" onclick="oskPress('A')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">a</button>
-<button type="button" data-key="S" onclick="oskPress('S')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">s</button>
-<button type="button" data-key="D" onclick="oskPress('D')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">d</button>
-<button type="button" data-key="F" onclick="oskPress('F')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">f</button>
-<button type="button" data-key="G" onclick="oskPress('G')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">g</button>
-<button type="button" data-key="H" onclick="oskPress('H')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">h</button>
-<button type="button" data-key="J" onclick="oskPress('J')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">j</button>
-<button type="button" data-key="K" onclick="oskPress('K')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">k</button>
-<button type="button" data-key="L" onclick="oskPress('L')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">l</button>
-<button type="button" data-key="@" onclick="oskPress('@')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">@</button>
+<button type="button" data-key="A" onclick="oskPress('A')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">a</button>
+<button type="button" data-key="S" onclick="oskPress('S')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">s</button>
+<button type="button" data-key="D" onclick="oskPress('D')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">d</button>
+<button type="button" data-key="F" onclick="oskPress('F')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">f</button>
+<button type="button" data-key="G" onclick="oskPress('G')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">g</button>
+<button type="button" data-key="H" onclick="oskPress('H')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">h</button>
+<button type="button" data-key="J" onclick="oskPress('J')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">j</button>
+<button type="button" data-key="K" onclick="oskPress('K')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">k</button>
+<button type="button" data-key="L" onclick="oskPress('L')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">l</button>
+<button type="button" data-key="@" onclick="oskPress('@')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">@</button>
 </div>
 <div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;" id="osk-row-z">
-<button type="button" data-key="SHIFT" onclick="oskToggleShift()" style="width:14%;height:42px;background:#220;border:1px solid #660;color:#fc0;font-size:11px;font-weight:bold;border-radius:4px;" id="osk-shift-btn">A/a</button>
-<button type="button" data-key="Z" onclick="oskPress('Z')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">z</button>
-<button type="button" data-key="X" onclick="oskPress('X')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">x</button>
-<button type="button" data-key="C" onclick="oskPress('C')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">c</button>
-<button type="button" data-key="V" onclick="oskPress('V')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">v</button>
-<button type="button" data-key="B" onclick="oskPress('B')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">b</button>
-<button type="button" data-key="N" onclick="oskPress('N')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">n</button>
-<button type="button" data-key="M" onclick="oskPress('M')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">m</button>
-<button type="button" data-key="." onclick="oskPress('.')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">.</button>
+<button type="button" data-key="SHIFT" onclick="oskToggleShift()" style="width:14%;height:42px;background:#220a00;border:1px solid #640;color:#fc0;font-size:11px;font-weight:bold;border-radius:4px;" id="osk-shift-btn">A/a</button>
+<button type="button" data-key="Z" onclick="oskPress('Z')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">z</button>
+<button type="button" data-key="X" onclick="oskPress('X')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">x</button>
+<button type="button" data-key="C" onclick="oskPress('C')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">c</button>
+<button type="button" data-key="V" onclick="oskPress('V')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">v</button>
+<button type="button" data-key="B" onclick="oskPress('B')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">b</button>
+<button type="button" data-key="N" onclick="oskPress('N')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">n</button>
+<button type="button" data-key="M" onclick="oskPress('M')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">m</button>
+<button type="button" data-key="." onclick="oskPress('.')" style="width:9%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">.</button>
 <button type="button" data-key="DEL" onclick="oskPress('DEL')" style="width:14%;height:42px;background:#300;border:1px solid #c00;color:#c00;font-size:11px;font-weight:bold;border-radius:4px;">WISSEN</button>
 </div>
 <div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;" id="osk-row-sp">
-<button type="button" data-key="SPACE" onclick="oskPress('SPACE')" style="width:60%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">SPATIE</button>
-<button type="button" data-key="DONE" onclick="oskPress('DONE')" style="width:35%;height:42px;background:#030;border:1px solid #0c0;color:#0c0;font-size:14px;font-weight:bold;border-radius:4px;">KLAAR</button>
+<button type="button" data-key="SPACE" onclick="oskPress('SPACE')" style="width:60%;height:42px;background:#1a0505;border:1px solid #600;color:#f88;font-size:14px;font-weight:bold;border-radius:4px;">SPATIE</button>
+<button type="button" data-key="DONE" onclick="oskPress('DONE')" style="width:35%;height:42px;background:#0a1a0a;border:1px solid #0c0;color:#0c0;font-size:14px;font-weight:bold;border-radius:4px;">KLAAR</button>
 </div>
 </div>
 
@@ -233,7 +563,7 @@ function oskApplyMode(mode){
 			btns[i].disabled=false;continue;
 		}
 		if(!cfg){
-			btns[i].style.background='#222';btns[i].style.color='#fff';btns[i].style.opacity='1';
+			btns[i].style.background='#1a0505';btns[i].style.color='#f88';btns[i].style.opacity='1';
 			btns[i].disabled=false;continue;
 		}
 		var allowed=false;
@@ -242,17 +572,17 @@ function oskApplyMode(mode){
 		else if(cfg.allow&&cfg.allow.indexOf(key)>=0){allowed=true;}
 		else if(cfg.allow&&key.length==1&&cfg.allow.indexOf(key.toUpperCase())>=0){allowed=true;}
 		if(allowed){
-			btns[i].style.background='#222';btns[i].style.color='#fff';btns[i].style.opacity='1';
+			btns[i].style.background='#1a0505';btns[i].style.color='#f88';btns[i].style.opacity='1';
 			btns[i].style.borderColor='#600';
 			btns[i].disabled=false;
 		}else{
-			btns[i].style.background='#0a0a0a';btns[i].style.color='#333';btns[i].style.opacity='1';
-			btns[i].style.borderColor='#1a1a1a';
+			btns[i].style.background='#0a0202';btns[i].style.color='#333';btns[i].style.opacity='1';
+			btns[i].style.borderColor='#1a0a0a';
 			btns[i].disabled=true;
 		}
 		if(key=='SHIFT'&&allowed){
-			btns[i].style.background=oskShiftOn?'#440':'#220';
-			btns[i].style.color='#fc0';btns[i].style.borderColor='#660';
+			btns[i].style.background=oskShiftOn?'#440a00':'#220a00';
+			btns[i].style.color='#fc0';btns[i].style.borderColor='#640';
 		}
 	}
 }
@@ -306,7 +636,7 @@ function oskFireInput(){
 }
 function oskToggleShift(){
 	oskShiftOn=!oskShiftOn;
-	document.getElementById('osk-shift-btn').style.background=oskShiftOn?'#440':'#220';
+	document.getElementById('osk-shift-btn').style.background=oskShiftOn?'#440a00':'#220a00';
 	var btns=document.getElementById('osk-overlay').querySelectorAll('button');
 	for(var i=0;i<btns.length;i++){
 		var oc=btns[i].getAttribute('onclick');
@@ -583,6 +913,23 @@ async function introBegrepen() {
 		if (music) music.play().catch(function(e) {});
 	}
 }
+
+// ========== CLOWN FLASH EFFECT ==========
+// Random scary clown flash: 0.2 sec duration, every 10-30 seconds
+function triggerClownFlash() {
+	var clown = document.getElementById('clown-flash');
+	clown.style.display = 'block';
+	clown.style.animation = 'clownFlash 0.25s ease-in-out forwards';
+	setTimeout(function() {
+		clown.style.display = 'none';
+		clown.style.animation = '';
+	}, 250);
+	// Schedule next flash: random 15-40 seconds
+	var nextDelay = 15000 + Math.random() * 25000;
+	setTimeout(triggerClownFlash, nextDelay);
+}
+// First flash after 8-20 seconds
+setTimeout(triggerClownFlash, 8000 + Math.random() * 12000);
 
 // Start music on first user interaction (autoplay is blocked without interaction)
 var musicStarted = false;
