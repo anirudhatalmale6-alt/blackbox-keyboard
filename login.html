@@ -459,51 +459,23 @@ function showIntro() {
 	document.getElementById("panel-intro").style.display = "block";
 }
 
-// Try to login player
-async function playerLogin() {
+// Try to login player - shows intro rules first, actual login after "Begrepen"
+function playerLogin() {
 	// Get player name
 	let playerName = document.getElementById("player-name").value;
 	// Get PIN
 	let pin = document.getElementById("player-pin").value;
 
-	// Build login data block
-	let loginData = {
-			"player_name": playerName,
-			"pin": pin,
-	};
+	if (!playerName || !pin) return;
 
-	// Create request URL
-	let urlPlayerLogin = theBlackBoxBaseURL+"player/login";
-	// Send login data
-	let response = await fetch(urlPlayerLogin, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify(loginData)
-	});
-
-	if (response.status === 200) {
-		// Login OK - immediately logout so game doesn't start yet
-		await fetch(theBlackBoxBaseURL+"player/logout");
-		// Store credentials for after intro
-		pendingAction = { type: 'login', data: loginData };
-		// Show intro rules
-		showIntro();
-	} else if (response.status === 403) {
-		// Get div element
-		let divElem = document.getElementById("login-player-error");
-
-		// Set message
-		divElem.innerHTML = "Onjuiste gegevens, probeer het opnieuw."
-
-		// Show message
-		divElem.style.display = "block";
-	}
+	// Store credentials - login happens after "Begrepen"
+	pendingAction = { type: 'login', data: { player_name: playerName, pin: pin } };
+	// Show intro rules
+	showIntro();
 }
 
-// Try to create player
-async function playerCreate() {
+// Try to create player - shows intro rules first, actual create+login after "Begrepen"
+function playerCreate() {
 	// Get player name
 	let playerName = document.getElementById("new-player-name").value;
 	// Get PIN
@@ -513,41 +485,15 @@ async function playerCreate() {
 	// Get email address
 	let emailAddress = document.getElementById("new-player-email-address").value;
 
-	// Build create data block
-	let createData = {
-			"player_name": playerName,
-			"pin": pin,
-			"full_name": fullName,
-			"email": emailAddress,
+	if (!playerName || !pin || !fullName) return;
+
+	// Store data - create+login happens after "Begrepen"
+	pendingAction = {
+		type: 'create',
+		data: { player_name: playerName, pin: pin, full_name: fullName, email: emailAddress }
 	};
-
-	// Create request URL
-	let urlPlayerCreate = theBlackBoxBaseURL+"player/create";
-	// Send player data
-	let response = await fetch(urlPlayerCreate, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify(createData)
-	});
-	const response_body = await response.json();
-
-	if (response.status === 201) {
-		// Player created - store credentials for login after intro
-		pendingAction = { type: 'login', data: { player_name: playerName, pin: pin } };
-		// Show intro rules
-		showIntro();
-	} else if (response.status === 409) {
-		// Get div element
-		let divElem = document.getElementById("new-player-error");
-
-		// Set message
-		divElem.innerHTML = response_body.error_msg;
-
-		// Show message
-		divElem.style.display = "block";
-	}
+	// Show intro rules
+	showIntro();
 }
 
 // Called when user clicks "Begrepen" on intro screen
@@ -560,15 +506,52 @@ async function introBegrepen() {
 	var music = document.getElementById('login-music');
 	if (music) { music.pause(); music.currentTime = 0; }
 
-	if (pendingAction && pendingAction.type === 'login') {
-		// Now actually login - this starts the game
+	if (pendingAction) {
+		if (pendingAction.type === 'create') {
+			// First create the player
+			let createResponse = await fetch(theBlackBoxBaseURL+"player/create", {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(pendingAction.data)
+			});
+			if (createResponse.status === 409) {
+				let body = await createResponse.json();
+				// Go back to registration with error
+				document.getElementById('btn-begrepen').disabled = false;
+				document.getElementById('btn-begrepen').innerText = 'Begrepen';
+				document.getElementById("panel-intro").style.display = "none";
+				openPanel({ currentTarget: document.querySelector('[onclick*="panel-new-player"]') }, 'panel-new-player');
+				document.getElementById("new-player-error").innerHTML = body.error_msg;
+				document.getElementById("new-player-error").style.display = "block";
+				// Show tabs again
+				let tablinks = document.getElementsByClassName("tablinks");
+				for (let i = 0; i < tablinks.length; i++) tablinks[i].style.display = "";
+				return;
+			}
+		}
+
+		// Now login
+		let loginData = { player_name: pendingAction.data.player_name, pin: pendingAction.data.pin };
 		let response = await fetch(theBlackBoxBaseURL+"player/login", {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(pendingAction.data)
+			body: JSON.stringify(loginData)
 		});
 		if (response.status === 200) {
 			showMessage("Het spel begint...");
+		} else if (response.status === 403) {
+			// Wrong credentials - go back to login form
+			document.getElementById('btn-begrepen').disabled = false;
+			document.getElementById('btn-begrepen').innerText = 'Begrepen';
+			document.getElementById("panel-intro").style.display = "none";
+			openPanel({ currentTarget: document.getElementById('defaultOpen') }, 'panel-login');
+			document.getElementById("login-player-error").innerHTML = "Onjuiste gegevens, probeer het opnieuw.";
+			document.getElementById("login-player-error").style.display = "block";
+			// Show tabs again
+			let tablinks = document.getElementsByClassName("tablinks");
+			for (let i = 0; i < tablinks.length; i++) tablinks[i].style.display = "";
+			// Restart music
+			if (music) music.play().catch(function(e) {});
 		}
 	}
 }
