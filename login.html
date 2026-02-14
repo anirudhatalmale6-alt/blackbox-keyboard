@@ -131,6 +131,21 @@
 
 </div>
 
+<div id="panel-intro" class="tabcontent" style="display:none;">
+	<div style="max-width:420px;margin:0 auto;padding:15px 20px;text-align:center;">
+		<h2 style="color:#fff;text-transform:uppercase;letter-spacing:2px;margin-bottom:20px;">Welkom bij The Black Box</h2>
+		<ul style="text-align:left;list-style:none;padding:0;margin:15px 0;">
+			<li style="padding:8px 0;border-bottom:1px solid #222;font-size:0.95em;line-height:1.4;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Vanaf nu is <strong>alles</strong> wat je ziet onderdeel van het spel</li>
+			<li style="padding:8px 0;border-bottom:1px solid #222;font-size:0.95em;line-height:1.4;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Elke pagina, elke opdracht en elke interactie telt mee voor je eindscore</li>
+			<li style="padding:8px 0;border-bottom:1px solid #222;font-size:0.95em;line-height:1.4;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> De tijd loopt vanaf nu - wees snel maar zorgvuldig</li>
+			<li style="padding:8px 0;border-bottom:1px solid #222;font-size:0.95em;line-height:1.4;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Gebruik alles om je heen: je telefoon, het scherm en de aanwijzingen</li>
+			<li style="padding:8px 0;font-size:0.95em;line-height:1.4;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Het spel eindigt pas als alle challenges zijn voltooid</li>
+		</ul>
+		<p style="color:#888;font-size:0.85em;font-style:italic;margin-top:20px;">Succes... je gaat het nodig hebben.</p>
+		<button id="btn-begrepen" onclick="introBegrepen()" style="margin-top:25px;padding:14px 50px;font-size:1.3em;font-weight:bold;background:#c0392b;color:#fff;border:none;border-radius:6px;cursor:pointer;text-transform:uppercase;letter-spacing:1px;">Begrepen</button>
+	</div>
+</div>
+
 <div id="osk-overlay" style="display:none;position:fixed;bottom:0;left:0;width:100%;z-index:9999;background:#111;border-top:2px solid #c00;padding:5px;box-sizing:border-box;">
 <div id="osk-preview" style="background:#1a1a1a;border:1px solid #c00;border-radius:4px;padding:6px 10px;margin-bottom:5px;color:#fff;font-size:14px;font-family:monospace;min-height:20px;display:flex;align-items:center;gap:8px;">
 <span id="osk-preview-label" style="color:#888;font-size:11px;white-space:nowrap;"></span>
@@ -419,6 +434,30 @@ function checkText(str, txtFilter, maxTxtLen) {
 	return str;
 }
 
+// Pending login/create action stored here
+var pendingAction = null;
+
+// Show intro rules screen
+function showIntro() {
+	let i, tabcontent, tablinks;
+	// Hide all panels
+	tabcontent = document.getElementsByClassName("tabcontent");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+	// Hide tabs
+	tablinks = document.getElementsByClassName("tablinks");
+	for (i = 0; i < tablinks.length; i++) {
+		tablinks[i].style.display = "none";
+	}
+	// Hide keyboard
+	oskHide();
+	// Show intro panel
+	document.getElementById("panel-intro").style.display = "block";
+	// Start background music
+	try { parent.startMusic(); } catch(e) {}
+}
+
 // Try to login player
 async function playerLogin() {
 	// Get player name
@@ -444,10 +483,12 @@ async function playerLogin() {
 	});
 
 	if (response.status === 200) {
-		// Login completed
-		showMessage("Inloggen gelukt, even geduld...");
-		// Start background music in parent frame
-		try { parent.startMusic(); } catch(e) {}
+		// Login OK - immediately logout so game doesn't start yet
+		await fetch(theBlackBoxBaseURL+"player/logout");
+		// Store credentials for after intro
+		pendingAction = { type: 'login', data: loginData };
+		// Show intro rules
+		showIntro();
 	} else if (response.status === 403) {
 		// Get div element
 		let divElem = document.getElementById("login-player-error");
@@ -492,10 +533,10 @@ async function playerCreate() {
 	const response_body = await response.json();
 
 	if (response.status === 201) {
-		// Player created
-		showMessage("Speler aangemaakt, even geduld...");
-		// Start background music in parent frame
-		try { parent.startMusic(); } catch(e) {}
+		// Player created - store credentials for login after intro
+		pendingAction = { type: 'login', data: { player_name: playerName, pin: pin } };
+		// Show intro rules
+		showIntro();
 	} else if (response.status === 409) {
 		// Get div element
 		let divElem = document.getElementById("new-player-error");
@@ -505,6 +546,25 @@ async function playerCreate() {
 
 		// Show message
 		divElem.style.display = "block";
+	}
+}
+
+// Called when user clicks "Begrepen" on intro screen
+async function introBegrepen() {
+	// Disable button
+	document.getElementById('btn-begrepen').disabled = true;
+	document.getElementById('btn-begrepen').innerText = 'Even geduld...';
+
+	if (pendingAction && pendingAction.type === 'login') {
+		// Now actually login - this starts the game
+		let response = await fetch(theBlackBoxBaseURL+"player/login", {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(pendingAction.data)
+		});
+		if (response.status === 200) {
+			showMessage("Het spel begint...");
+		}
 	}
 }
 
