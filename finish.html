@@ -2,7 +2,125 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" type="text/css" href="theblackbox.css">
+<style>
+@font-face {
+	font-family: 'Creepster';
+	src: url('Creepster-Regular.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@keyframes flicker {
+	0%, 100% { opacity: 1; }
+	41% { opacity: 1; }
+	42% { opacity: 0.3; }
+	43% { opacity: 1; }
+	44% { opacity: 0.7; }
+	45% { opacity: 1; }
+	80% { opacity: 1; }
+	81% { opacity: 0.2; }
+	82% { opacity: 1; }
+}
+
+@keyframes titleGlow {
+	0%, 100% { text-shadow: 0 0 10px #c00, 0 0 20px #800, 0 0 40px #400; }
+	50% { text-shadow: 0 0 20px #f00, 0 0 40px #c00, 0 0 80px #800; }
+}
+
+@keyframes btnHoverPulse {
+	0%, 100% { box-shadow: 0 0 15px rgba(200, 0, 0, 0.5), inset 0 0 10px rgba(200, 0, 0, 0.1); }
+	50% { box-shadow: 0 0 30px rgba(200, 0, 0, 0.8), 0 0 60px rgba(150, 0, 0, 0.3), inset 0 0 15px rgba(200, 0, 0, 0.2); }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+	background: #000;
+	color: #ccc;
+	font-family: 'Segoe UI', Arial, sans-serif;
+	overflow: hidden;
+}
+
+canvas {
+	display: block;
+	position: fixed;
+	top: 0; left: 0;
+	width: 100%; height: 100%;
+	z-index: 1;
+}
+
+.finish-message {
+	position: fixed;
+	top: 0; left: 0;
+	width: 100%; height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 10;
+	pointer-events: none;
+}
+
+#panel-finish-message {
+	text-align: center;
+	padding: 30px;
+	pointer-events: auto;
+}
+
+.finish-message-row {
+	display: inline;
+}
+
+#panel-finish-message h1 {
+	font-family: 'Creepster', cursive;
+	line-height: 1.6;
+}
+
+#panel-finish-message .finish-message-row:first-child {
+	font-size: 1.4em;
+	color: #f44;
+	letter-spacing: 4px;
+	text-transform: uppercase;
+	animation: titleGlow 3s ease-in-out infinite, flicker 5s ease-in-out infinite;
+}
+
+#finish-message-player-name {
+	font-size: 1.8em !important;
+	color: #ff6666 !important;
+	animation: titleGlow 2s ease-in-out infinite;
+}
+
+#finish-message-player-time {
+	color: #f88 !important;
+	font-size: 1.2em;
+}
+
+#panel-finish-message .finish-message-row {
+	color: #a88;
+	font-size: 0.9em;
+	letter-spacing: 2px;
+}
+
+#finish-message-button {
+	font-family: 'Creepster', cursive !important;
+	font-size: 1.4em !important;
+	letter-spacing: 3px;
+	background: linear-gradient(180deg, #3a0a0a, #1a0505) !important;
+	color: #f44 !important;
+	border: 2px solid #800 !important;
+	border-radius: 8px;
+	padding: 14px 40px !important;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	text-transform: uppercase;
+	animation: btnHoverPulse 3s ease-in-out infinite;
+	margin-top: 15px;
+}
+
+#finish-message-button:hover {
+	background: linear-gradient(180deg, #4a0f0f, #2a0808) !important;
+	transform: scale(1.05);
+}
+</style>
 </head>
 <body>
 
@@ -12,11 +130,11 @@
 <div class="finish-message">
 	<div id="panel-finish-message">
 		<h1 style="text-align: center;"><b>
-			<div class="finish-message-row">Congratulations</div><br>
+			<div class="finish-message-row">Je hebt het overleefd!</div><br>
 			<div id="finish-message-player-name" class="finish-message-row"></div><br>
-			<div class="finish-message-row">You have conquered the Black Box!</div><br>
-			<div class="finish-message-row">Total time: <div id="finish-message-player-time" class="finish-message-row"></div></div><br>
-			<input type="button" id="finish-message-button" value="   Continue   " onclick="loadHighScorePage()" />
+			<div class="finish-message-row">The Black Box is verslagen</div><br>
+			<div class="finish-message-row">Totale tijd: <div id="finish-message-player-time" class="finish-message-row"></div></div><br>
+			<input type="button" id="finish-message-button" value="   Highscore   " onclick="loadHighScorePage()" />
 		<b></h1>
 	</div>
 </div>
@@ -90,12 +208,10 @@ if (playerID != "") {
 setTimeout(loadHighScorePage, 120000);
 
 /************************************************************************************************/
-/* Fireworks											*/
+/* Fireworks - RED THEME									*/
 /*   From: https://codepen.io/whqet/pen/abooRX							*/
 /************************************************************************************************/
 
-// When animating on canvas, it is best to use requestAnimationFrame instead of setTimeout or setInterval
-// not supported in all browsers though and sometimes needs a prefix, so we need a shim
 window.requestAnimFrame = ( function() {
 	return window.requestAnimationFrame ||
 				window.webkitRequestAnimationFrame ||
@@ -105,60 +221,45 @@ window.requestAnimFrame = ( function() {
 				};
 })();
 
-// Variables
 var canvas = document.getElementById('finish-message-canvas');
 var ctx = canvas.getContext('2d');
 
-// Full screen dimensions
 var cw = window.innerWidth;
 var ch = window.innerHeight;
 
-// Firework collection
 var fireworks = [];
-// Particle collection
 var particles = [];
 
-// Starting hue
-var hue = 120;
+// Red-themed hue (around 0-20 for reds/oranges)
+var hue = 0;
 
-// This will time the auto launches of fireworks, one launch per 80 loop ticks
 var timerTotal = 80;
 var timerTick = 0;
 
-// Set canvas dimensions
 canvas.width = cw;
 canvas.height = ch;
 
-// Get a random number within a range
 function random( min, max ) {
 	return Math.random() * ( max - min ) + min;
 }
 
-// Calculate the distance between two points
 function calculateDistance( p1x, p1y, p2x, p2y ) {
 	var xDistance = p1x - p2x;
 	var yDistance = p1y - p2y;
 	return Math.sqrt( Math.pow( xDistance, 2 ) + Math.pow( yDistance, 2 ) );
 }
 
-// Create firework
 function Firework( sx, sy, tx, ty ) {
-	// Actual coordinates
 	this.x = sx;
 	this.y = sy;
-	// Starting coordinates
 	this.sx = sx;
 	this.sy = sy;
-	// Target coordinates
 	this.tx = tx;
 	this.ty = ty;
-	// Distance from starting point to target
 	this.distanceToTarget = calculateDistance( sx, sy, tx, ty );
 	this.distanceTraveled = 0;
-	// Track the past coordinates of each firework to create a trail effect, increase the coordinate count to create more prominent trails
 	this.coordinates = [];
 	this.coordinateCount = 3;
-	// Populate initial coordinate collection with the current coordinates
 	while( this.coordinateCount-- ) {
 		this.coordinates.push( [ this.x, this.y ] );
 	}
@@ -166,167 +267,115 @@ function Firework( sx, sy, tx, ty ) {
 	this.speed = 2;
 	this.acceleration = 1.05;
 	this.brightness = random( 50, 70 );
-	// Circle target indicator radius
 	this.targetRadius = 1;
 }
 
-// Update firework
 Firework.prototype.update = function( index ) {
-	// Remove last item in coordinates array
 	this.coordinates.pop();
-	// Add current coordinates to the start of the array
 	this.coordinates.unshift( [ this.x, this.y ] );
 
-	// Cycle the circle target indicator radius
 	if( this.targetRadius < 8 ) {
 		this.targetRadius += 0.3;
 	} else {
 		this.targetRadius = 1;
 	}
 
-	// Speed up the firework
 	this.speed *= this.acceleration;
 
-	// Get the current velocities based on angle and speed
 	var vx = Math.cos( this.angle ) * this.speed,
 			vy = Math.sin( this.angle ) * this.speed;
-	// How far will the firework have traveled with velocities applied?
 	this.distanceTraveled = calculateDistance( this.sx, this.sy, this.x + vx, this.y + vy );
 
-	// If the distance traveled, including velocities, is greater than the initial distance to the target
-	// then the target has been reached
 	if( this.distanceTraveled >= this.distanceToTarget ) {
 		createParticles( this.tx, this.ty );
-		// Remove the firework, use the index passed into the update function to determine which to remove
 		fireworks.splice( index, 1 );
 	} else {
-		// target not reached, keep traveling
 		this.x += vx;
 		this.y += vy;
 	}
 }
 
-// Draw firework
 Firework.prototype.draw = function() {
 	ctx.beginPath();
-	// Move to the last tracked coordinate in the set, then draw a line to the current x and y
 	ctx.moveTo( this.coordinates[ this.coordinates.length - 1][ 0 ], this.coordinates[ this.coordinates.length - 1][ 1 ] );
 	ctx.lineTo( this.x, this.y );
 	ctx.strokeStyle = 'hsl(' + hue + ', 100%, ' + this.brightness + '%)';
 	ctx.stroke();
-
-//	ctx.beginPath();
-//	// Draw the target for this firework with a pulsing circle
-//	ctx.arc( this.tx, this.ty, this.targetRadius, 0, Math.PI * 2 );
-//	ctx.stroke();
 }
 
-// Create particle
 function Particle( x, y ) {
 	this.x = x;
 	this.y = y;
-	// Track the past coordinates of each particle to create a trail effect
-	// Increase the coordinate count to create more prominent trails
 	this.coordinates = [];
 	this.coordinateCount = 5;
 	while( this.coordinateCount-- ) {
 		this.coordinates.push( [ this.x, this.y ] );
 	}
-	// Set a random angle in all possible directions, in radians
 	this.angle = random( 0, Math.PI * 2 );
 	this.speed = random( 1, 10 );
-	// Friction will slow the particle down
 	this.friction = 0.95;
-	// Gravity will be applied and pull the particle down
 	this.gravity = 1;
-	// Set the hue to a random number +-50 of the overall hue variable
-	this.hue = random( hue - 50, hue + 50 );
+	// Red/orange horror palette
+	this.hue = random( hue - 10, hue + 20 );
 	this.brightness = random( 50, 80 );
 	this.alpha = 1;
-	// Set how fast the particle fades out
 	this.decay = random( 0.015, 0.03 );
 }
 
-// Update particle
 Particle.prototype.update = function( index ) {
-	// Remove last item in coordinates array
 	this.coordinates.pop();
-	// Add current coordinates to the start of the array
 	this.coordinates.unshift( [ this.x, this.y ] );
-	// Slow down the particle
 	this.speed *= this.friction;
-	// Apply velocity
 	this.x += Math.cos( this.angle ) * this.speed;
 	this.y += Math.sin( this.angle ) * this.speed + this.gravity;
-	// Fade out the particle
 	this.alpha -= this.decay;
 
-	// Remove the particle once the alpha is low enough, based on the passed in index
 	if( this.alpha <= this.decay ) {
 		particles.splice( index, 1 );
 	}
 }
 
-// Draw particle
 Particle.prototype.draw = function() {
 	ctx. beginPath();
-	// Move to the last tracked coordinates in the set
-	// Then draw a line to the current x and y
 	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
 	ctx.lineTo( this.x, this.y );
 	ctx.strokeStyle = 'hsla(' + this.hue + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
 	ctx.stroke();
 }
 
-// Create particle group/explosion
 function createParticles( x, y ) {
-	// Increase the particle count for a bigger explosion
-	// Beware of the canvas performance hit with the increased particles though
 	var particleCount = 30;
 	while( particleCount-- ) {
 		particles.push( new Particle( x, y ) );
 	}
 }
 
-// Main loop
 function loop() {
-	// This function will run endlessly with requestAnimationFrame
 	requestAnimFrame( loop );
 
-	// Create random color
-	hue = random(0, 360 );
+	// Red/orange horror color palette (hue 0-30)
+	hue = random(0, 30);
 
-	// Normally, clearRect() would be used to clear the canvas
-	// We want to create a trailing effect though setting the composite operation to destination-out
-	// will allow us to clear the canvas at a specific opacity, rather than wiping it entirely
 	ctx.globalCompositeOperation = 'destination-out';
-	// Decrease the alpha property to create more prominent trails
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
 	ctx.fillRect( 0, 0, cw, ch );
-	// Change the composite operation back to our main mode
-	// lighter creates bright highlight points as the fireworks and particles overlap each other
 	ctx.globalCompositeOperation = 'lighter';
 
-	// Loop over each firework, draw it, update it
 	var i = fireworks.length;
 	while( i-- ) {
 		fireworks[ i ].draw();
 		fireworks[ i ].update( i );
 	}
 
-	// Loop over each particle, draw it, update it
 	var i = particles.length;
 	while( i-- ) {
 		particles[ i ].draw();
 		particles[ i ].update( i );
 	}
 
-	// Launch fireworks automatically to random coordinates, when the mouse isn't down
 	if( timerTick >= timerTotal ) {
 		var fw_create = random(1, 5);
 		for (var i = 0; i < fw_create; i++) {
-			// Start the firework at the bottom middle of the screen, then set the random target coordinates
-			// The random y coordinates will be set within the range of the top half of the screen
 			fireworks.push( new Firework( cw / 2, ch, random( 0, cw ), random( 0, ch / 2 ) ) );
 			timerTick = 0;
 		}
@@ -335,7 +384,6 @@ function loop() {
 	}
 }
 
-// once the window loads, we are ready for some fireworks!
 window.onload = loop;
 
 </script>

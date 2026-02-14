@@ -13,18 +13,23 @@ echo "=== Deploying Horror Theme ==="
 echo "Copying login.html..."
 cp "$REPO_DIR/login.html" "$HTML_DIR/"
 
-# 2. Copy Creepster font
+# 2. Copy finish page (horror styled)
+echo "Copying finish.html..."
+cp "$REPO_DIR/finish.html" "$HTML_DIR/"
+
+# 3. Copy Creepster font
 echo "Copying Creepster font..."
 cp "$REPO_DIR/Creepster-Regular.ttf" "$HTML_DIR/"
 
-# 3. Copy clown image for flash effect
+# 4. Copy clown image for flash effect
 echo "Copying clown.jpg..."
 cp "$REPO_DIR/clown.jpg" "$HTML_DIR/"
 
-# 4. Also update the copy in /opt/theblackbox/html/ if it exists
+# 5. Also update the copy in /opt/theblackbox/html/ if it exists
 if [ -d "/opt/theblackbox/html" ]; then
     echo "Also updating /opt/theblackbox/html/..."
     cp "$REPO_DIR/login.html" "/opt/theblackbox/html/"
+    cp "$REPO_DIR/finish.html" "/opt/theblackbox/html/"
     cp "$REPO_DIR/Creepster-Regular.ttf" "/opt/theblackbox/html/"
     cp "$REPO_DIR/clown.jpg" "/opt/theblackbox/html/"
 fi

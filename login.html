@@ -348,13 +348,15 @@ input[type="button"]:active, .horror-btn:active {
 <div id="clown-flash"></div>
 
 <div class="tab">
-	<button class="tablinks" onclick="openPanel(event, 'panel-login')" id="defaultOpen">Overlevenden</button>
-	<button class="tablinks" onclick="openPanel(event, 'panel-new-player')">Nieuw Slachtoffer</button>
+	<button class="tablinks" onclick="openPanel(event, 'panel-login')" id="defaultOpen">Inloggen</button>
 	<button class="tablinks" onclick="loadHighScorePage()">Highscore</button>
 </div>
 
+<!-- Vertical register button on right side -->
+<div id="register-side-btn" onclick="openPanelDirect('panel-new-player')" style="position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:50;writing-mode:vertical-rl;text-orientation:mixed;font-family:'Creepster',cursive;font-size:1.2em;letter-spacing:3px;text-transform:uppercase;color:#f44;background:linear-gradient(180deg,#3a0a0a,#1a0505);border:2px solid #800;border-right:none;border-radius:10px 0 0 10px;padding:20px 10px;cursor:pointer;animation:btnHoverPulse 3s ease-in-out infinite;transition:all 0.3s ease;">Nieuw Slachtoffer</div>
+
 <div id="panel-login" class="tabcontent">
-	<div class="horror-title">Betreed het Theater</div>
+	<div class="horror-title">Betreed het Huis</div>
 	<div class="horror-subtitle">...als je durft</div>
 
 	<div class="login-player-details">
@@ -395,7 +397,6 @@ input[type="button"]:active, .horror-btn:active {
 
 <div id="panel-new-player" class="tabcontent">
 	<div class="horror-title">Nieuw Slachtoffer</div>
-	<div class="horror-subtitle">Registreer je... voor altijd</div>
 
 	<div class="new-player-details">
 	<div class="new-player-text">
@@ -448,6 +449,10 @@ input[type="button"]:active, .horror-btn:active {
 	</div>
 	<div id="new-player-error" class="new-player-entry" style="display:none;">
 	</div>
+	</div>
+
+	<div style="text-align:center;margin-top:10px;">
+	<span onclick="document.getElementById('defaultOpen').click()" style="font-family:'Creepster',cursive;color:#744;font-size:1em;letter-spacing:2px;cursor:pointer;text-decoration:underline;">&#8592; Terug naar inloggen</span>
 	</div>
 </div>
 
@@ -665,6 +670,23 @@ async function loadHighScorePage() {
 	}
 }
 
+// Open panel from side button (no tab event)
+function openPanelDirect(panelName) {
+	let i, tabcontent, tablinks;
+	tabcontent = document.getElementsByClassName("tabcontent");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+	tablinks = document.getElementsByClassName("tablinks");
+	for (i = 0; i < tablinks.length; i++) {
+		tablinks[i].className = tablinks[i].className.replace(" active", "");
+	}
+	document.getElementById(panelName).style.display = "block";
+	// Hide the side register button when register panel is open
+	var sideBtn = document.getElementById('register-side-btn');
+	if (sideBtn) sideBtn.style.display = (panelName === 'panel-new-player') ? 'none' : 'block';
+}
+
 // Display selected panel
 function openPanel(evt, panelName) {
 	let i, tabcontent, tablinks;
@@ -685,6 +707,9 @@ function openPanel(evt, panelName) {
 	document.getElementById(panelName).style.display = "block";
 	// Activate tab
 	evt.currentTarget.className += " active";
+	// Show side register button when not on register panel
+	var sideBtn = document.getElementById('register-side-btn');
+	if (sideBtn) sideBtn.style.display = (panelName === 'panel-new-player') ? 'none' : 'block';
 }
 
 // Display selected panel
@@ -924,12 +949,12 @@ function triggerClownFlash() {
 		clown.style.display = 'none';
 		clown.style.animation = '';
 	}, 250);
-	// Schedule next flash: random 15-40 seconds
-	var nextDelay = 15000 + Math.random() * 25000;
+	// Schedule next flash: random 7-20 seconds (frequent!)
+	var nextDelay = 7000 + Math.random() * 13000;
 	setTimeout(triggerClownFlash, nextDelay);
 }
-// First flash after 8-20 seconds
-setTimeout(triggerClownFlash, 8000 + Math.random() * 12000);
+// First flash after 4-10 seconds
+setTimeout(triggerClownFlash, 4000 + Math.random() * 6000);
 
 // Start music on first user interaction (autoplay is blocked without interaction)
 var musicStarted = false;
