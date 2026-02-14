@@ -8,7 +8,7 @@
 <body>
 
 <!-- Background music - plays on login screen and intro rules -->
-<audio id="login-music" src="soundofsilence.mp3" preload="auto" loop autoplay></audio>
+<audio id="login-music" src="soundofsilence.mp3" preload="auto" loop></audio>
 
 <div class="tab">
 	<button class="tablinks" onclick="openPanel(event, 'panel-login')" id="defaultOpen">Inloggen</button>
@@ -572,6 +572,17 @@ async function introBegrepen() {
 		}
 	}
 }
+
+// Start music on first user interaction (autoplay is blocked without interaction)
+var musicStarted = false;
+function tryStartMusic() {
+	if (!musicStarted) {
+		var music = document.getElementById('login-music');
+		music.play().then(function() { musicStarted = true; }).catch(function(e) {});
+	}
+}
+document.body.addEventListener('click', tryStartMusic);
+document.body.addEventListener('touchstart', tryStartMusic);
 
 // Get the element with id="defaultOpen" and click on it
 document.getElementById("defaultOpen").click();
