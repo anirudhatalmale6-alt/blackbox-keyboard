@@ -1,0 +1,12 @@
+[Unit]
+Description=BlackBox GPIO Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/theblackbox/gpio_service.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
