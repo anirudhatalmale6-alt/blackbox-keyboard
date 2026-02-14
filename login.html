@@ -521,53 +521,67 @@ async function introBegrepen() {
 	var music = document.getElementById('login-music');
 	if (music) { music.pause(); music.currentTime = 0; }
 
-	if (pendingAction) {
-		if (pendingAction.type === 'create') {
-			// First create the player
-			let createResponse = await fetch(theBlackBoxBaseURL+"player/create", {
+	try {
+		if (pendingAction) {
+			if (pendingAction.type === 'create') {
+				// First create the player
+				let createResponse = await fetch(theBlackBoxBaseURL+"player/create", {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(pendingAction.data)
+				});
+				if (createResponse.status === 409) {
+					var errMsg = "Spelersnaam bestaat al.";
+					try { let body = await createResponse.json(); errMsg = body.error_msg || errMsg; } catch(e) {}
+					document.getElementById('btn-begrepen').disabled = false;
+					document.getElementById('btn-begrepen').innerText = 'Begrepen';
+					document.getElementById("panel-intro").style.display = "none";
+					openPanel({ currentTarget: document.querySelector('[onclick*="panel-new-player"]') }, 'panel-new-player');
+					document.getElementById("new-player-error").innerHTML = errMsg;
+					document.getElementById("new-player-error").style.display = "block";
+					let tablinks = document.getElementsByClassName("tablinks");
+					for (let i = 0; i < tablinks.length; i++) tablinks[i].style.display = "";
+					if (music) music.play().catch(function(e) {});
+					return;
+				} else if (!createResponse.ok) {
+					throw new Error("Account aanmaken mislukt (status " + createResponse.status + ")");
+				}
+			}
+
+			// Now login
+			let loginData = { player_name: pendingAction.data.player_name, pin: pendingAction.data.pin };
+			let response = await fetch(theBlackBoxBaseURL+"player/login", {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(pendingAction.data)
+				body: JSON.stringify(loginData)
 			});
-			if (createResponse.status === 409) {
-				let body = await createResponse.json();
-				// Go back to registration with error
+			if (response.status === 200) {
+				showMessage("Het spel begint...");
+			} else if (response.status === 403) {
 				document.getElementById('btn-begrepen').disabled = false;
 				document.getElementById('btn-begrepen').innerText = 'Begrepen';
 				document.getElementById("panel-intro").style.display = "none";
-				openPanel({ currentTarget: document.querySelector('[onclick*="panel-new-player"]') }, 'panel-new-player');
-				document.getElementById("new-player-error").innerHTML = body.error_msg;
-				document.getElementById("new-player-error").style.display = "block";
-				// Show tabs again
+				openPanel({ currentTarget: document.getElementById('defaultOpen') }, 'panel-login');
+				document.getElementById("login-player-error").innerHTML = "Onjuiste gegevens, probeer het opnieuw.";
+				document.getElementById("login-player-error").style.display = "block";
 				let tablinks = document.getElementsByClassName("tablinks");
 				for (let i = 0; i < tablinks.length; i++) tablinks[i].style.display = "";
-				return;
+				if (music) music.play().catch(function(e) {});
+			} else {
+				throw new Error("Inloggen mislukt (status " + response.status + ")");
 			}
 		}
-
-		// Now login
-		let loginData = { player_name: pendingAction.data.player_name, pin: pendingAction.data.pin };
-		let response = await fetch(theBlackBoxBaseURL+"player/login", {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(loginData)
-		});
-		if (response.status === 200) {
-			showMessage("Het spel begint...");
-		} else if (response.status === 403) {
-			// Wrong credentials - go back to login form
-			document.getElementById('btn-begrepen').disabled = false;
-			document.getElementById('btn-begrepen').innerText = 'Begrepen';
-			document.getElementById("panel-intro").style.display = "none";
-			openPanel({ currentTarget: document.getElementById('defaultOpen') }, 'panel-login');
-			document.getElementById("login-player-error").innerHTML = "Onjuiste gegevens, probeer het opnieuw.";
-			document.getElementById("login-player-error").style.display = "block";
-			// Show tabs again
-			let tablinks = document.getElementsByClassName("tablinks");
-			for (let i = 0; i < tablinks.length; i++) tablinks[i].style.display = "";
-			// Restart music
-			if (music) music.play().catch(function(e) {});
-		}
+	} catch(err) {
+		console.log("introBegrepen error:", err);
+		document.getElementById('btn-begrepen').disabled = false;
+		document.getElementById('btn-begrepen').innerText = 'Begrepen';
+		document.getElementById("panel-intro").style.display = "none";
+		openPanel({ currentTarget: document.querySelector('[onclick*="panel-new-player"]') }, 'panel-new-player');
+		document.getElementById("new-player-error").innerHTML = "Er ging iets mis: " + err.message;
+		document.getElementById("new-player-error").style.display = "block";
+		let tablinks = document.getElementsByClassName("tablinks");
+		for (let i = 0; i < tablinks.length; i++) tablinks[i].style.display = "";
+		if (music) music.play().catch(function(e) {});
 	}
 }
 
