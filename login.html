@@ -522,53 +522,30 @@ async function introBegrepen() {
 	if (music) { music.pause(); music.currentTime = 0; }
 
 	try {
-		if (pendingAction) {
-			if (pendingAction.type === 'create') {
-				// First create the player
-				let createResponse = await fetch(theBlackBoxBaseURL+"player/create", {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(pendingAction.data)
-				});
-				if (createResponse.status === 409) {
-					var errMsg = "Spelersnaam bestaat al.";
-					try { let body = await createResponse.json(); errMsg = body.error_msg || errMsg; } catch(e) {}
-					document.getElementById('btn-begrepen').disabled = false;
-					document.getElementById('btn-begrepen').innerText = 'Begrepen';
-					document.getElementById("panel-intro").style.display = "none";
-					openPanel({ currentTarget: document.querySelector('[onclick*="panel-new-player"]') }, 'panel-new-player');
-					document.getElementById("new-player-error").innerHTML = errMsg;
-					document.getElementById("new-player-error").style.display = "block";
-					let tablinks = document.getElementsByClassName("tablinks");
-					for (let i = 0; i < tablinks.length; i++) tablinks[i].style.display = "";
-					if (music) music.play().catch(function(e) {});
-					return;
-				} else if (!createResponse.ok) {
-					throw new Error("Account aanmaken mislukt (status " + createResponse.status + ")");
-				}
-			}
-
-			// Now login
-			let loginData = { player_name: pendingAction.data.player_name, pin: pendingAction.data.pin };
-			let response = await fetch(theBlackBoxBaseURL+"player/login", {
+		if (pendingAction && pendingAction.type === 'create') {
+			// Create the player - this also logs them in on the server
+			let createResponse = await fetch(theBlackBoxBaseURL+"player/create", {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(loginData)
+				body: JSON.stringify(pendingAction.data)
 			});
-			if (response.status === 200) {
+			if (createResponse.status === 201) {
+				// Player created and logged in - game starts
 				showMessage("Het spel begint...");
-			} else if (response.status === 403) {
+			} else if (createResponse.status === 409) {
+				var errMsg = "Spelersnaam bestaat al.";
+				try { let body = await createResponse.json(); errMsg = body.error_msg || errMsg; } catch(e) {}
 				document.getElementById('btn-begrepen').disabled = false;
 				document.getElementById('btn-begrepen').innerText = 'Begrepen';
 				document.getElementById("panel-intro").style.display = "none";
-				openPanel({ currentTarget: document.getElementById('defaultOpen') }, 'panel-login');
-				document.getElementById("login-player-error").innerHTML = "Onjuiste gegevens, probeer het opnieuw.";
-				document.getElementById("login-player-error").style.display = "block";
+				openPanel({ currentTarget: document.querySelector('[onclick*="panel-new-player"]') }, 'panel-new-player');
+				document.getElementById("new-player-error").innerHTML = errMsg;
+				document.getElementById("new-player-error").style.display = "block";
 				let tablinks = document.getElementsByClassName("tablinks");
 				for (let i = 0; i < tablinks.length; i++) tablinks[i].style.display = "";
 				if (music) music.play().catch(function(e) {});
 			} else {
-				throw new Error("Inloggen mislukt (status " + response.status + ")");
+				throw new Error("Account aanmaken mislukt (status " + createResponse.status + ")");
 			}
 		}
 	} catch(err) {
