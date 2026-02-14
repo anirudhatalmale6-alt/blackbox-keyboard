@@ -98,85 +98,7 @@ body {
     display: none;
 }
 
-/* On-screen keyboard */
-#osk {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    z-index: 9999;
-    background: #111;
-    border-top: 2px solid #c00;
-    padding: 5px;
-    display: none;
-}
-
-#osk-preview {
-    background: #1a1a1a;
-    border: 1px solid #c00;
-    border-radius: 4px;
-    padding: 6px 10px;
-    margin-bottom: 5px;
-    color: #fff;
-    font-size: 14px;
-    font-family: monospace;
-    min-height: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-#osk-preview-label { color: #888; font-size: 11px; white-space: nowrap; }
-#osk-preview-value { color: #fff; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.osk-row {
-    display: flex;
-    gap: 3px;
-    margin-bottom: 3px;
-    justify-content: center;
-}
-
-.osk-key {
-    height: 42px;
-    background: #222;
-    border: 1px solid #600;
-    color: #fff;
-    font-size: 14px;
-    font-weight: bold;
-    border-radius: 4px;
-    cursor: pointer;
-    flex: 1;
-    max-width: 42px;
-}
-
-.osk-key:active {
-    background: #444;
-}
-
-.osk-key.special {
-    max-width: 80px;
-    flex: 1.5;
-}
-
-.osk-key.del {
-    background: #300;
-    border-color: #c00;
-    color: #c00;
-    font-size: 11px;
-}
-
-.osk-key.done {
-    background: #030;
-    border-color: #0c0;
-    color: #0c0;
-    font-size: 12px;
-    max-width: none;
-    flex: 1;
-}
-
-.osk-key.space {
-    max-width: none;
-    flex: 3;
-}
+/* No custom keyboard CSS needed - using inline styles identical to login page */
 
 /* Hint text */
 #hint-text {
@@ -210,47 +132,59 @@ body {
 
 <div id="hint-text">Vind de schakelaar</div>
 
-<!-- On-screen keyboard -->
-<div id="osk">
-<div id="osk-preview">
-<span id="osk-preview-label">Code</span>
-<span id="osk-preview-value"></span>
+<!-- On-screen keyboard - identical to login page -->
+<div id="osk-overlay" style="display:none;position:fixed;bottom:0;left:0;width:100%;z-index:9999;background:#111;border-top:2px solid #c00;padding:5px;box-sizing:border-box;">
+<div id="osk-preview" style="background:#1a1a1a;border:1px solid #c00;border-radius:4px;padding:6px 10px;margin-bottom:5px;color:#fff;font-size:14px;font-family:monospace;min-height:20px;display:flex;align-items:center;gap:8px;">
+<span id="osk-preview-label" style="color:#888;font-size:11px;white-space:nowrap;">Code</span>
+<span id="osk-preview-value" style="color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
 </div>
-<div class="osk-row">
-<button type="button" class="osk-key" onclick="oskType('q')">q</button>
-<button type="button" class="osk-key" onclick="oskType('w')">w</button>
-<button type="button" class="osk-key" onclick="oskType('e')">e</button>
-<button type="button" class="osk-key" onclick="oskType('r')">r</button>
-<button type="button" class="osk-key" onclick="oskType('t')">t</button>
-<button type="button" class="osk-key" onclick="oskType('y')">y</button>
-<button type="button" class="osk-key" onclick="oskType('u')">u</button>
-<button type="button" class="osk-key" onclick="oskType('i')">i</button>
-<button type="button" class="osk-key" onclick="oskType('o')">o</button>
-<button type="button" class="osk-key" onclick="oskType('p')">p</button>
+<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
+<button type="button" onclick="oskPress('1')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">1</button>
+<button type="button" onclick="oskPress('2')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">2</button>
+<button type="button" onclick="oskPress('3')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">3</button>
+<button type="button" onclick="oskPress('4')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">4</button>
+<button type="button" onclick="oskPress('5')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">5</button>
+<button type="button" onclick="oskPress('6')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">6</button>
+<button type="button" onclick="oskPress('7')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">7</button>
+<button type="button" onclick="oskPress('8')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">8</button>
+<button type="button" onclick="oskPress('9')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">9</button>
+<button type="button" onclick="oskPress('0')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">0</button>
 </div>
-<div class="osk-row">
-<button type="button" class="osk-key" onclick="oskType('a')">a</button>
-<button type="button" class="osk-key" onclick="oskType('s')">s</button>
-<button type="button" class="osk-key" onclick="oskType('d')">d</button>
-<button type="button" class="osk-key" onclick="oskType('f')">f</button>
-<button type="button" class="osk-key" onclick="oskType('g')">g</button>
-<button type="button" class="osk-key" onclick="oskType('h')">h</button>
-<button type="button" class="osk-key" onclick="oskType('j')">j</button>
-<button type="button" class="osk-key" onclick="oskType('k')">k</button>
-<button type="button" class="osk-key" onclick="oskType('l')">l</button>
+<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
+<button type="button" onclick="oskPress('q')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">q</button>
+<button type="button" onclick="oskPress('w')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">w</button>
+<button type="button" onclick="oskPress('e')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">e</button>
+<button type="button" onclick="oskPress('r')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">r</button>
+<button type="button" onclick="oskPress('t')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">t</button>
+<button type="button" onclick="oskPress('y')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">y</button>
+<button type="button" onclick="oskPress('u')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">u</button>
+<button type="button" onclick="oskPress('i')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">i</button>
+<button type="button" onclick="oskPress('o')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">o</button>
+<button type="button" onclick="oskPress('p')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">p</button>
 </div>
-<div class="osk-row">
-<button type="button" class="osk-key" onclick="oskType('z')">z</button>
-<button type="button" class="osk-key" onclick="oskType('x')">x</button>
-<button type="button" class="osk-key" onclick="oskType('c')">c</button>
-<button type="button" class="osk-key" onclick="oskType('v')">v</button>
-<button type="button" class="osk-key" onclick="oskType('b')">b</button>
-<button type="button" class="osk-key" onclick="oskType('n')">n</button>
-<button type="button" class="osk-key" onclick="oskType('m')">m</button>
-<button type="button" class="osk-key del special" onclick="oskDel()">WISSEN</button>
+<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
+<button type="button" onclick="oskPress('a')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">a</button>
+<button type="button" onclick="oskPress('s')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">s</button>
+<button type="button" onclick="oskPress('d')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">d</button>
+<button type="button" onclick="oskPress('f')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">f</button>
+<button type="button" onclick="oskPress('g')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">g</button>
+<button type="button" onclick="oskPress('h')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">h</button>
+<button type="button" onclick="oskPress('j')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">j</button>
+<button type="button" onclick="oskPress('k')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">k</button>
+<button type="button" onclick="oskPress('l')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">l</button>
 </div>
-<div class="osk-row">
-<button type="button" class="osk-key done" onclick="oskDone()">KLAAR</button>
+<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
+<button type="button" onclick="oskPress('z')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">z</button>
+<button type="button" onclick="oskPress('x')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">x</button>
+<button type="button" onclick="oskPress('c')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">c</button>
+<button type="button" onclick="oskPress('v')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">v</button>
+<button type="button" onclick="oskPress('b')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">b</button>
+<button type="button" onclick="oskPress('n')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">n</button>
+<button type="button" onclick="oskPress('m')" style="width:9%;height:42px;background:#222;border:1px solid #600;color:#fff;font-size:14px;font-weight:bold;border-radius:4px;">m</button>
+<button type="button" onclick="oskPress('DEL')" style="width:14%;height:42px;background:#300;border:1px solid #c00;color:#c00;font-size:11px;font-weight:bold;border-radius:4px;">WISSEN</button>
+</div>
+<div style="display:flex;gap:3px;margin-bottom:3px;justify-content:center;">
+<button type="button" onclick="oskPress('DONE')" style="width:95%;height:42px;background:#030;border:1px solid #0c0;color:#0c0;font-size:14px;font-weight:bold;border-radius:4px;">KLAAR</button>
 </div>
 </div>
 
@@ -286,26 +220,28 @@ function toggleSwitch(e) {
 
 function showOsk() {
     if (locked) return;
-    document.getElementById('osk').style.display = 'block';
+    document.getElementById('osk-overlay').style.display = 'block';
     oskUpdatePreview();
+    setTimeout(function() {
+        document.getElementById('code-input').scrollIntoView({behavior:'smooth',block:'center'});
+    }, 100);
 }
 
-function oskType(ch) {
+function oskPress(key) {
     if (locked) return;
     var inp = document.getElementById('code-input');
+    if (key === 'DONE') {
+        document.getElementById('osk-overlay').style.display = 'none';
+        return;
+    }
+    if (key === 'DEL') {
+        inp.value = inp.value.slice(0, -1);
+        oskUpdatePreview();
+        return;
+    }
     if (inp.value.length >= 10) return;
-    inp.value += ch;
+    inp.value += key;
     oskUpdatePreview();
-}
-
-function oskDel() {
-    var inp = document.getElementById('code-input');
-    inp.value = inp.value.slice(0, -1);
-    oskUpdatePreview();
-}
-
-function oskDone() {
-    document.getElementById('osk').style.display = 'none';
 }
 
 function oskUpdatePreview() {
@@ -323,7 +259,7 @@ function checkCode() {
         document.getElementById('code-submit').innerText = 'Correct!';
         document.getElementById('code-error').style.display = 'none';
         document.getElementById('code-input').disabled = true;
-        document.getElementById('osk').style.display = 'none';
+        document.getElementById('osk-overlay').style.display = 'none';
 
         // Turn off GPIO (LED off)
         fetch(gpioBase + 'gpio/set?pin=17&state=0').catch(function(e) {});
@@ -341,7 +277,7 @@ function checkCode() {
         document.getElementById('code-submit').disabled = true;
         document.getElementById('code-error').style.display = 'block';
         document.getElementById('code-timer').style.display = 'block';
-        document.getElementById('osk').style.display = 'none';
+        document.getElementById('osk-overlay').style.display = 'none';
         oskUpdatePreview();
 
         var seconds = 60;
