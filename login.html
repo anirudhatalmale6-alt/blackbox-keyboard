@@ -446,6 +446,8 @@ async function playerLogin() {
 	if (response.status === 200) {
 		// Login completed
 		showMessage("Inloggen gelukt, even geduld...");
+		// Start background music in parent frame
+		try { parent.startMusic(); } catch(e) {}
 	} else if (response.status === 403) {
 		// Get div element
 		let divElem = document.getElementById("login-player-error");
@@ -492,6 +494,8 @@ async function playerCreate() {
 	if (response.status === 201) {
 		// Player created
 		showMessage("Speler aangemaakt, even geduld...");
+		// Start background music in parent frame
+		try { parent.startMusic(); } catch(e) {}
 	} else if (response.status === 409) {
 		// Get div element
 		let divElem = document.getElementById("new-player-error");

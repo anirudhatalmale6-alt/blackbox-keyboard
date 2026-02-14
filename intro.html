@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="theblackbox.css">
+<style>
+body {
+    background: #000;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+.intro-container {
+    max-width: 420px;
+    padding: 30px 25px;
+    text-align: center;
+}
+.intro-title {
+    color: #fff;
+    font-size: 1.6em;
+    font-weight: bold;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+.intro-rules {
+    text-align: left;
+    margin: 20px 0;
+    padding: 0;
+    list-style: none;
+}
+.intro-rules li {
+    padding: 10px 0;
+    border-bottom: 1px solid #222;
+    font-size: 0.95em;
+    line-height: 1.4;
+    position: relative;
+    padding-left: 25px;
+}
+.intro-rules li:last-child {
+    border-bottom: none;
+}
+.intro-rules li::before {
+    content: "\25B6";
+    position: absolute;
+    left: 0;
+    color: #c0392b;
+    font-size: 0.7em;
+    top: 13px;
+}
+.intro-footer {
+    margin-top: 25px;
+    color: #888;
+    font-size: 0.85em;
+    font-style: italic;
+}
+#btn-begrepen {
+    margin-top: 30px;
+    padding: 14px 50px;
+    font-size: 1.3em;
+    font-weight: bold;
+    background: #c0392b;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+#btn-begrepen:active {
+    background: #e74c3c;
+}
+</style>
+</head>
+<body>
+
+<div class="intro-container">
+    <div class="intro-title">Welkom bij The Black Box</div>
+
+    <ul class="intro-rules">
+        <li>Vanaf nu is <strong>alles</strong> wat je ziet onderdeel van het spel</li>
+        <li>Elke pagina, elke opdracht en elke interactie telt mee voor je eindscore</li>
+        <li>De tijd loopt vanaf nu - wees snel maar zorgvuldig</li>
+        <li>Gebruik alles om je heen: je telefoon, het scherm en de aanwijzingen</li>
+        <li>Het spel eindigt pas als alle challenges zijn voltooid</li>
+    </ul>
+
+    <div class="intro-footer">
+        Succes... je gaat het nodig hebben.
+    </div>
+
+    <button id="btn-begrepen" onclick="begrepen()">Begrepen</button>
+</div>
+
+<script type="text/javascript">
+var theBlackBoxBase = "http://127.0.0.1:5000/";
+
+async function begrepen() {
+    // Disable button to prevent double click
+    document.getElementById('btn-begrepen').disabled = true;
+    document.getElementById('btn-begrepen').innerText = 'Even geduld...';
+
+    try {
+        // Signal challenge complete to move to next challenge
+        let response = await fetch(theBlackBoxBase + "challenge/action?complete=1");
+        let data = await response.json();
+    } catch (error) {
+        console.log(error);
+    }
+}
+</script>
+
+</body>
+</html>

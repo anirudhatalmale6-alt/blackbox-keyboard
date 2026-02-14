@@ -1,0 +1,105 @@
+<html>
+<head>
+<title>The BlackBox</title>
+<link rel="stylesheet" type="text/css" href="theblackbox.css">
+</head>
+<body id="tbbx-body">
+<div id="tbbx-banner">
+
+	<span id="tbbx-status"><img id="icon-wifi-connected" class="" src="icons/wifi-grey.32x32.png"> </span>
+	<span id="tbbx-player"><center id="tbbx-player-text"></center></span>
+	<span id="tbbx-logout"><button id="button-player-logout" onclick="playerLogout()"><img id="icon-player-logout" class="" src="icons/power-black.32x32.png" /></button></span>
+</div>
+<div id="tbbx-challenge"> <iframe id="tbbx-challenge-frame" height="100%" width="100%" style="border: 0px;" allowfullscreen></iframe> </div>
+
+<!-- Background music player - persists across iframe changes -->
+<audio id="tbbx-music" src="soundofsilence.mp3" preload="auto" loop></audio>
+
+<script type="text/javascript">
+// URL base for communicating with The BlackBox
+var theBlackBoxBase = "http://127.0.0.1:5000/";
+
+// Start background music
+function startMusic() {
+	let audio = document.getElementById("tbbx-music");
+	if (audio.paused) {
+		audio.play().catch(function(e) { console.log("Music autoplay blocked:", e); });
+	}
+}
+
+// Stop background music
+function stopMusic() {
+	let audio = document.getElementById("tbbx-music");
+	audio.pause();
+	audio.currentTime = 0;
+}
+
+// Set WiFi icon colour
+function updateWiFiIcon(connected) {
+	// Get img element
+	let icon_wifi_connected = document.getElementById("icon-wifi-connected");
+
+	if (connected) {
+		icon_wifi_connected.className = "tbbx-wifi-connected";
+	} else {
+		icon_wifi_connected.className = "";
+	}
+}
+
+// Set player name in the banner
+function setBannerPlayerName(playerName) {
+	document.getElementById("tbbx-player-text").innerHTML = playerName
+}
+
+// Fetch banner data
+async function fetchBannerData() {
+	// Create banner information URL
+	let urlBannerInformation = theBlackBoxBase+"banner";
+	try {
+		// Get banner information
+		//console.log(urlBannerInformation)
+		let response = await fetch(urlBannerInformation);
+
+		// Process response
+		responseJSON = await response.json();
+		//console.log(responseJSON);
+
+		// Update banner
+		if (responseJSON.connected) {
+			updateWiFiIcon(true);
+		} else {
+			updateWiFiIcon(false);
+		}
+		setBannerPlayerName(responseJSON.player)
+	} catch (error) {
+		// Print error
+		//console.log(error);
+	}
+}
+
+// Logout player
+async function playerLogout() {
+	// Create player logout URL
+	let urlPlayerLogout = theBlackBoxBase+"player/logout";
+	try {
+		// Get banner information
+		//console.log(urlPlayerLogout)
+		let response = await fetch(urlPlayerLogout);
+
+		// Process response
+		responseJSON = await response.json();
+		//console.log(responseJSON);
+	} catch (error) {
+		// Print error
+		//console.log(error);
+	}
+
+	// Stop music on logout
+	stopMusic();
+}
+
+setInterval(fetchBannerData, 500);
+</script>
+
+</body>
+</html>
