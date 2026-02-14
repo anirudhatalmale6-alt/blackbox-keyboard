@@ -27,15 +27,13 @@ body {
 /* Invisible touch zone over the lever in the image */
 #switch-zone {
     position: absolute;
-    left: 3%;
-    top: 38%;
-    width: 14%;
-    height: 22%;
+    left: 12%;
+    top: 72%;
+    width: 5%;
+    height: 20%;
     z-index: 10;
     cursor: pointer;
-    /* DEBUG: red border to show position - remove later */
-    border: 2px solid red;
-    background: rgba(255,0,0,0.2);
+    /* Invisible - no background, no border */
 }
 
 /* Code input area - bottom right */
@@ -102,19 +100,6 @@ body {
 
 /* No custom keyboard CSS needed - using inline styles identical to login page */
 
-/* Hint text */
-#hint-text {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: rgba(255,255,255,0.5);
-    font-size: 0.85em;
-    z-index: 15;
-    text-align: center;
-    pointer-events: none;
-    transition: opacity 0.5s;
-}
 </style>
 </head>
 <body>
@@ -132,7 +117,6 @@ body {
     <div id="code-timer"></div>
 </div>
 
-<div id="hint-text">Vind de schakelaar</div>
 
 <!-- On-screen keyboard - identical to login page -->
 <div id="osk-overlay" style="display:none;position:fixed;bottom:0;left:0;width:100%;z-index:9999;background:#111;border-top:2px solid #c00;padding:5px;box-sizing:border-box;">
@@ -205,9 +189,6 @@ function toggleSwitch(e) {
 
     // Change mansion image to lights on
     document.getElementById('mansion-img').src = 'mansion_on_fixed.jpg';
-
-    // Hide hint
-    document.getElementById('hint-text').style.opacity = '0';
 
     // Turn on GPIO 17 (LED)
     fetch(gpioBase + 'gpio/set?pin=17&state=1').catch(function(e) {
