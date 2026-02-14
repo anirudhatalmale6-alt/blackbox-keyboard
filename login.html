@@ -8,7 +8,7 @@
 <body>
 
 <!-- Background music - plays on login screen and intro rules -->
-<audio id="login-music" src="soundofsilence.mp3" preload="auto" loop></audio>
+<audio id="login-music" src="hauntedintro.mp3" preload="auto" loop></audio>
 
 <div class="tab">
 	<button class="tablinks" onclick="openPanel(event, 'panel-login')" id="defaultOpen">Inloggen</button>
@@ -566,6 +566,9 @@ function tryStartMusic() {
 }
 document.body.addEventListener('click', tryStartMusic);
 document.body.addEventListener('touchstart', tryStartMusic);
+
+// Stop any parent music (e.g. soundofsilence from finish/highscore)
+try { parent.stopMusic(); } catch(e) {}
 
 // Get the element with id="defaultOpen" and click on it
 document.getElementById("defaultOpen").click();
