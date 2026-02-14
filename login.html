@@ -135,17 +135,17 @@
 </div>
 
 <div id="panel-intro" class="tabcontent" style="display:none;">
-	<div style="max-width:420px;margin:0 auto;padding:15px 20px;text-align:center;">
-		<h2 style="color:#fff;text-transform:uppercase;letter-spacing:2px;margin-bottom:20px;">Welkom bij The Black Box</h2>
-		<ul style="text-align:left;list-style:none;padding:0;margin:15px 0;">
-			<li style="padding:8px 0;border-bottom:1px solid #222;font-size:0.95em;line-height:1.4;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Vanaf nu is <strong>alles</strong> wat je ziet onderdeel van het spel</li>
-			<li style="padding:8px 0;border-bottom:1px solid #222;font-size:0.95em;line-height:1.4;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Elke pagina, elke opdracht en elke interactie telt mee voor je eindscore</li>
-			<li style="padding:8px 0;border-bottom:1px solid #222;font-size:0.95em;line-height:1.4;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> De tijd loopt vanaf nu - wees snel maar zorgvuldig</li>
-			<li style="padding:8px 0;border-bottom:1px solid #222;font-size:0.95em;line-height:1.4;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Gebruik alles om je heen: je telefoon, het scherm en de aanwijzingen</li>
-			<li style="padding:8px 0;font-size:0.95em;line-height:1.4;padding-left:20px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Het spel eindigt pas als alle challenges zijn voltooid</li>
+	<div style="max-width:420px;margin:0 auto;padding:10px 20px;text-align:center;">
+		<h2 style="color:#fff;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;font-size:1.2em;">Welkom bij The Black Box</h2>
+		<ul style="text-align:left;list-style:none;padding:0;margin:10px 0;">
+			<li style="padding:6px 0;border-bottom:1px solid #222;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Vanaf nu is <strong>alles</strong> wat je ziet onderdeel van het spel</li>
+			<li style="padding:6px 0;border-bottom:1px solid #222;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Elke pagina, elke opdracht en elke interactie telt mee voor je eindscore</li>
+			<li style="padding:6px 0;border-bottom:1px solid #222;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> De tijd loopt vanaf nu - wees snel maar zorgvuldig</li>
+			<li style="padding:6px 0;border-bottom:1px solid #222;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Gebruik alles om je heen: je telefoon, het scherm en de aanwijzingen</li>
+			<li style="padding:6px 0;font-size:0.85em;line-height:1.3;padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:#c0392b;">&#9654;</span> Het spel eindigt pas als alle challenges zijn voltooid</li>
 		</ul>
-		<p style="color:#888;font-size:0.85em;font-style:italic;margin-top:20px;">Succes... je gaat het nodig hebben.</p>
-		<button id="btn-begrepen" onclick="introBegrepen()" style="margin-top:25px;padding:14px 50px;font-size:1.3em;font-weight:bold;background:#c0392b;color:#fff;border:none;border-radius:6px;cursor:pointer;text-transform:uppercase;letter-spacing:1px;">Begrepen</button>
+		<p style="color:#888;font-size:0.8em;font-style:italic;margin-top:10px;">Succes... je gaat het nodig hebben.</p>
+		<button id="btn-begrepen" onclick="introBegrepen()" style="margin-top:15px;padding:18px 60px;font-size:1.5em;font-weight:bold;background:#c0392b;color:#fff;border:none;border-radius:8px;cursor:pointer;text-transform:uppercase;letter-spacing:2px;box-shadow:0 0 15px rgba(192,57,43,0.5);">Begrepen</button>
 	</div>
 </div>
 
@@ -459,8 +459,8 @@ function showIntro() {
 	document.getElementById("panel-intro").style.display = "block";
 }
 
-// Try to login player - shows intro rules first, actual login after "Begrepen"
-function playerLogin() {
+// Try to login player - existing account, skip intro, login directly
+async function playerLogin() {
 	// Get player name
 	let playerName = document.getElementById("player-name").value;
 	// Get PIN
@@ -468,10 +468,25 @@ function playerLogin() {
 
 	if (!playerName || !pin) return;
 
-	// Store credentials - login happens after "Begrepen"
-	pendingAction = { type: 'login', data: { player_name: playerName, pin: pin } };
-	// Show intro rules
-	showIntro();
+	// Stop background music
+	var music = document.getElementById('login-music');
+	if (music) { music.pause(); music.currentTime = 0; }
+
+	// Login directly (no intro for existing accounts)
+	let response = await fetch(theBlackBoxBaseURL+"player/login", {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ player_name: playerName, pin: pin })
+	});
+	if (response.status === 200) {
+		oskHide();
+		showMessage("Het spel begint...");
+	} else if (response.status === 403) {
+		document.getElementById("login-player-error").innerHTML = "Onjuiste gegevens, probeer het opnieuw.";
+		document.getElementById("login-player-error").style.display = "block";
+		// Restart music
+		if (music) music.play().catch(function(e) {});
+	}
 }
 
 // Try to create player - shows intro rules first, actual create+login after "Begrepen"
