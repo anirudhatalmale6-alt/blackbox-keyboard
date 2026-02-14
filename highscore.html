@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@font-face {
+	font-family: 'Creepster';
+	src: url('Creepster-Regular.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@keyframes flicker {
+	0%, 100% { opacity: 1; }
+	41% { opacity: 1; }
+	42% { opacity: 0.3; }
+	43% { opacity: 1; }
+	44% { opacity: 0.7; }
+	45% { opacity: 1; }
+	80% { opacity: 1; }
+	81% { opacity: 0.2; }
+	82% { opacity: 1; }
+}
+
+@keyframes titleGlow {
+	0%, 100% { text-shadow: 0 0 10px #c00, 0 0 20px #800, 0 0 40px #400; }
+	50% { text-shadow: 0 0 20px #f00, 0 0 40px #c00, 0 0 80px #800; }
+}
+
+@keyframes fogDrift {
+	0% { background-position: 0% 50%, 100% 50%; }
+	50% { background-position: 100% 50%, 0% 50%; }
+	100% { background-position: 0% 50%, 100% 50%; }
+}
+
+@keyframes subtlePulse {
+	0%, 100% { border-color: #500; }
+	50% { border-color: #c00; }
+}
+
+@keyframes userPulse {
+	0%, 100% { color: #f44; text-shadow: 0 0 5px rgba(255,0,0,0.3); }
+	50% { color: #ff8; text-shadow: 0 0 15px rgba(255,200,0,0.5); }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+	background: radial-gradient(ellipse at center, #1a0a0a 0%, #0d0505 40%, #050202 70%, #000 100%);
+	color: #ccc;
+	font-family: 'Segoe UI', Arial, sans-serif;
+	font-size: 14px;
+	min-height: 100vh;
+	overflow: hidden;
+	position: relative;
+}
+
+/* Fog overlay */
+body::before {
+	content: '';
+	position: fixed;
+	top: 0; left: 0;
+	width: 200%; height: 200%;
+	background:
+		radial-gradient(ellipse at 20% 50%, rgba(100, 0, 0, 0.08) 0%, transparent 50%),
+		radial-gradient(ellipse at 80% 50%, rgba(80, 0, 0, 0.06) 0%, transparent 50%);
+	animation: fogDrift 20s ease-in-out infinite;
+	pointer-events: none;
+	z-index: 0;
+}
+
+.panel-highscore {
+	position: relative;
+	z-index: 2;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Header */
+.highscore-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 15px;
+	border-bottom: 1px solid #300;
+}
+
+.highscore-header h1 {
+	font-family: 'Creepster', cursive;
+	font-size: 1.8em;
+	color: #e00;
+	letter-spacing: 4px;
+	text-transform: uppercase;
+	animation: titleGlow 3s ease-in-out infinite, flicker 5s ease-in-out infinite;
+}
+
+#button-highscore-login-page {
+	background: linear-gradient(180deg, #3a0a0a, #1a0505);
+	border: 2px solid #800;
+	border-radius: 8px;
+	padding: 8px 12px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#button-highscore-login-page:hover {
+	border-color: #c00;
+	box-shadow: 0 0 15px rgba(200,0,0,0.5);
+}
+
+#icon-highscore-back-arrow {
+	width: 28px;
+	height: 28px;
+	filter: invert(20%) sepia(100%) saturate(500%) hue-rotate(0deg) brightness(150%);
+}
+
+/* Table layout */
+.highscore-layout {
+	flex: 1;
+	overflow: hidden;
+	padding: 5px 10px;
+}
+
+.highscore-layout-table {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.highscore-layout-table-window {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	border: 1px solid #400;
+	border-radius: 8px;
+	background: rgba(10, 2, 2, 0.7);
+}
+
+/* Table header */
+.highscore-layout-table-window-header {
+	display: flex;
+	padding: 10px 8px;
+	border-bottom: 2px solid #600;
+	background: rgba(30, 5, 5, 0.9);
+}
+
+.highscore-layout-table-window-header-item {
+	font-family: 'Creepster', cursive;
+	font-size: 1.1em;
+	color: #f44;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	text-shadow: 0 0 8px rgba(200,0,0,0.4);
+}
+
+.highscore-layout-table-window-header-item:nth-child(1) {
+	width: 55px;
+	text-align: center;
+}
+
+.highscore-layout-table-window-header-item:nth-child(2) {
+	flex: 1;
+}
+
+.highscore-layout-table-window-header-item:nth-child(3) {
+	width: 80px;
+	text-align: right;
+}
+
+/* Table rows */
+.highscore-layout-table-window-links {
+	flex: 1;
+	overflow-y: hidden;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.highscore-layout-table-window-link {
+	display: flex;
+	padding: 7px 8px;
+	border-bottom: 1px solid #200;
+	transition: background 0.2s ease;
+}
+
+.highscore-layout-table-window-link:hover {
+	background: rgba(100, 0, 0, 0.15);
+}
+
+.highscore-layout-table-window-link-item {
+	color: #a88;
+	font-size: 0.95em;
+	letter-spacing: 1px;
+}
+
+.highscore-layout-table-window-link-item:nth-child(1) {
+	width: 55px;
+	text-align: center;
+	font-family: 'Creepster', cursive;
+	font-size: 1.05em;
+	color: #c66;
+}
+
+.highscore-layout-table-window-link-item:nth-child(2) {
+	flex: 1;
+	color: #caa;
+}
+
+.highscore-layout-table-window-link-item:nth-child(3) {
+	width: 80px;
+	text-align: right;
+	color: #a88;
+	font-family: monospace;
+}
+
+/* Current player highlight */
+.highscore-layout-table-window-link-user {
+	color: #f44;
+	font-weight: bold;
+	font-size: 0.95em;
+	letter-spacing: 1px;
+	animation: userPulse 2s ease-in-out infinite;
+}
+
+.highscore-layout-table-window-link-user:nth-child(1) {
+	width: 55px;
+	text-align: center;
+	font-family: 'Creepster', cursive;
+	font-size: 1.1em;
+}
+
+.highscore-layout-table-window-link-user:nth-child(2) {
+	flex: 1;
+}
+
+.highscore-layout-table-window-link-user:nth-child(3) {
+	width: 80px;
+	text-align: right;
+	font-family: monospace;
+}
+
+/* Top 3 special styling */
+.highscore-layout-table-window-links li:nth-child(1) .highscore-layout-table-window-link-item:nth-child(1),
+.highscore-layout-table-window-links li:nth-child(2) .highscore-layout-table-window-link-item:nth-child(1),
+.highscore-layout-table-window-links li:nth-child(3) .highscore-layout-table-window-link-item:nth-child(1) {
+	color: #f44;
+	text-shadow: 0 0 10px rgba(255,0,0,0.5);
+}
+</style>
+</head>
+<body>
+
+<div class="panel-highscore">
+	<div class="highscore-header">
+		<div>
+			<center>
+			<button id="button-highscore-login-page" onclick="loadLoginPage()">
+				<img id="icon-highscore-back-arrow" class="" src="icons/arrow-left-black.48x48.png" />
+			</button>
+			</center>
+		</div>
+		<div>
+			<h1 style="text-align: center;"><b>Overlevenden</b></h1>
+		</div>
+		<div></div>
+	</div>
+
+	<div class="highscore-layout">
+	<div class="highscore-layout-table">
+		<div>
+		</div>
+		<div class="highscore-layout-table-window">
+			<div class="highscore-layout-table-window-header">
+				<div class="highscore-layout-table-window-header-item">Rank</div>
+				<div class="highscore-layout-table-window-header-item">Naam</div>
+				<div class="highscore-layout-table-window-header-item">Tijd</div>
+			</div>
+			<ul id="highscore-layout-table-window-links" class="highscore-layout-table-window-links">
+			</ul>
+		</div>
+		<div>
+		</div>
+	</div>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+// URL base for communicating with The BlackBox
+var theBlackBoxBaseURL = "http://127.0.0.1:5000/";
+
+// Go to login page
+async function loadLoginPage() {
+	// Create login select URL
+	let urlLoadLoginPage = theBlackBoxBaseURL+"page/select?select_page=login";
+	try {
+		// Load login page
+		//console.log(urlLoadLoginPage)
+		let response = await fetch(urlLoadLoginPage);
+
+		// Process response
+		responseJSON = await response.json();
+		//console.log(responseJSON);
+	} catch (error) {
+		// Print error
+		//console.log(error);
+	}
+}
+
+// Update highscore list
+async function updateHighScoreList(playerID) {
+	// Get highscore list
+	let listHighScore = document.getElementById("highscore-layout-table-window-links");
+
+	// Create highscore list URL
+	let urlHighScoreList = theBlackBoxBaseURL+"player/list?highscore=1";
+	// Append player ID if set
+	if (playerID != null) {
+		urlHighScoreList += "&uid="+playerID;
+	}
+	try {
+		// Get Access Point list
+		//console.log(urlHighScoreList)
+		let response = await fetch(urlHighScoreList);
+
+		// Process response
+		responseJSON = await response.json();
+		//console.log(responseJSON);
+
+		// Clear HighScore list
+		listHighScore.innerHTML = "";
+
+		let rankPrev = 0;
+		// Display returned data
+		responseJSON["players"].slice(0, 20).forEach((player) => {
+			// Check whether to add a spacer
+			if ((rankPrev + 1) != player["rank"]) {
+				let lisp = document.createElement("li");
+				linkHTML = "<div class=\"highscore-layout-table-window-link\">";
+				linkHTML += "<div class=\"highscore-layout-table-window-link-item\"></div>";
+				linkHTML += "<div class=\"highscore-layout-table-window-link-item\">.....</div>";
+				linkHTML += "<div class=\"highscore-layout-table-window-link-item\"></div>";
+				linkHTML += "</div>";
+				lisp.innerHTML = linkHTML;
+				listHighScore.appendChild(lisp);
+			}
+
+			// Wrap players row in different CSS for colour cycling
+			if ((playerID != null) && (playerID == player["uid"])) {
+				li_class = "highscore-layout-table-window-link-user";
+			} else {
+				li_class = "highscore-layout-table-window-link-item";
+			}
+
+			let li = document.createElement("li");
+			linkHTML = "<div class=\"highscore-layout-table-window-link\">";
+			linkHTML += "<div class=\""+li_class+"\">"+player["rank"]+"</div>";
+			linkHTML += "<div class=\""+li_class+"\">"+player["player_name"]+"</div>";
+			linkHTML += "<div class=\""+li_class+"\">"+player["elapsed_time_str"]+"</div>";
+			linkHTML += "</div>";
+			li.innerHTML = linkHTML;
+			listHighScore.appendChild(li);
+
+			rankPrev = player["rank"];
+		});
+
+	} catch (error) {
+		// Print error
+		//console.log(error);
+	}
+}
+
+// Scroll the highscore table view
+function scrollList() {
+	// Get scroll information
+	let listHighScore = document.getElementById("highscore-layout-table-window-links");
+	let viewHeight = listHighScore.clientHeight;
+	let listHeight = listHighScore.scrollHeight;
+	let listDelta = listHeight - viewHeight;
+
+	//console.log("View Height:"+viewHeight+"     List Height:"+listHeight+"     List Delta:"+listDelta+"     List Offset:"+listOffset);
+
+	// Does the view port need moving
+	if (listDelta > 0) {
+		// Scroll down if at the top
+		if (listOffset == 0) { listDirection = 1; }
+		if (listOffset == listDelta) { listDirection = -1; }
+
+		// Pause at the top and bottom
+		if (((listOffset == 0) || (listOffset == listDelta)) && (listPauseCount < listPauseTime)) {
+			listPauseCount += 1;
+		} else {
+			// Reset pause counter
+			listPauseCount = 0;
+
+			listOffset += listDirection;
+			listHighScore.scroll(0, listOffset);
+		}
+	}
+}
+
+// Cycle the colour of the identified player
+function cyclePlayerColour(playerID) {
+	if (playerID != null) {
+		// Get elements displaying selected player information
+		let elements = document.getElementsByClassName("highscore-layout-table-window-link-user");
+
+		// Check that actually returned something
+		if (elements.length > 0) {
+			// Assume all the elements have the same colour
+			let css = window.getComputedStyle(elements[0]);
+			let rgb = css.getPropertyValue("color").match(/\d+/g);
+			// Convert to intger
+			rgb[0] = parseInt(rgb[0]);
+			rgb[1] = parseInt(rgb[1]);
+			rgb[2] = parseInt(rgb[2]);
+
+			// Check for a change of direction
+			if (rgb[1] == 0) { cycleDirection = 15; }
+			if (rgb[1] == 255) { cycleDirection = -15; }
+
+			// Update colour value
+			rgb[1] += cycleDirection;
+			//console.log(rgb);
+
+			// Update the elements
+			for (const element of elements) {
+				element.style.color = "rgb("+rgb[0]+", "+rgb[1]+", "+rgb[2]+")"
+			}
+		}
+	}
+}
+
+// Get GET variables
+let url = new URL(window.location)
+let urlParams = new URLSearchParams(url.search);
+
+// Get player ID (if set)
+let playerID = urlParams.get('uid');
+// Create the highscore player list
+updateHighScoreList(playerID);
+
+// Parameters to control scrolling
+var listDirection = 1;					// Direction to scroll list in (1 = down / -1 = up)
+var listOffset = 0;					// Current offset of the list in the view pane
+var listPauseCount = 0;					// Current pause loop count
+var listPauseTime = 100;				// Pause the list scrolling at the top and bottom
+
+// Parameters to control colour cycling
+var cycleDirection = 1;
+
+// Call these functions every 50ms
+setInterval(() => {
+	// Scroll list
+	scrollList();
+
+	// Cycle identified player colour
+	cyclePlayerColour(playerID);
+}, 50);
+
+// After 2 mins, load login page
+setTimeout(loadLoginPage, 120000);
+</script>
+
+</body>
+</html>

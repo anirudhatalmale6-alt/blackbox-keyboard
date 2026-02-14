@@ -17,6 +17,10 @@ cp "$REPO_DIR/login.html" "$HTML_DIR/"
 echo "Copying finish.html..."
 cp "$REPO_DIR/finish.html" "$HTML_DIR/"
 
+# 2b. Copy highscore page (horror styled)
+echo "Copying highscore.html..."
+cp "$REPO_DIR/highscore.html" "$HTML_DIR/"
+
 # 3. Copy Creepster font
 echo "Copying Creepster font..."
 cp "$REPO_DIR/Creepster-Regular.ttf" "$HTML_DIR/"
@@ -30,6 +34,7 @@ if [ -d "/opt/theblackbox/html" ]; then
     echo "Also updating /opt/theblackbox/html/..."
     cp "$REPO_DIR/login.html" "/opt/theblackbox/html/"
     cp "$REPO_DIR/finish.html" "/opt/theblackbox/html/"
+    cp "$REPO_DIR/highscore.html" "/opt/theblackbox/html/"
     cp "$REPO_DIR/Creepster-Regular.ttf" "/opt/theblackbox/html/"
     cp "$REPO_DIR/clown.jpg" "/opt/theblackbox/html/"
 fi
