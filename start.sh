@@ -45,7 +45,7 @@ done
 # Extra wait for Marionette actors to fully initialize
 # Port 2828 opens before internal actors are ready
 echo "Waiting for Marionette actors to initialize..."
-sleep 5
+sleep 15
 
 # Start TheBlackBox (it will control the browser)
 cd /opt/theblackbox
