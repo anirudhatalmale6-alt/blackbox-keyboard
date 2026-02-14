@@ -105,6 +105,9 @@ async function begrepen() {
     document.getElementById('btn-begrepen').disabled = true;
     document.getElementById('btn-begrepen').innerText = 'Even geduld...';
 
+    // Stop background music before moving to video
+    try { parent.stopMusic(); } catch(e) {}
+
     try {
         // Signal challenge complete to move to next challenge
         let response = await fetch(theBlackBoxBase + "challenge/action?complete=1");
