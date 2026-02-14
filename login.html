@@ -500,7 +500,29 @@ function playerCreate() {
 	// Get email address
 	let emailAddress = document.getElementById("new-player-email-address").value;
 
-	if (!playerName || !pin || !fullName) return;
+	// Validate before showing intro
+	var errorDiv = document.getElementById("new-player-error");
+	if (!playerName) {
+		errorDiv.innerHTML = "Vul een spelersnaam in.";
+		errorDiv.style.display = "block";
+		return;
+	}
+	if (playerName.length > 24) {
+		errorDiv.innerHTML = "Spelersnaam is te lang (max 24 tekens).";
+		errorDiv.style.display = "block";
+		return;
+	}
+	if (!pin || pin.length !== 4) {
+		errorDiv.innerHTML = "PIN moet exact 4 cijfers zijn.";
+		errorDiv.style.display = "block";
+		return;
+	}
+	if (!fullName) {
+		errorDiv.innerHTML = "Vul je volledige naam in.";
+		errorDiv.style.display = "block";
+		return;
+	}
+	errorDiv.style.display = "none";
 
 	// Store data - create+login happens after "Begrepen"
 	pendingAction = {
