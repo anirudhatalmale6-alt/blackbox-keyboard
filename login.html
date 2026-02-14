@@ -7,6 +7,9 @@
 </head>
 <body>
 
+<!-- Background music - plays on login screen and intro rules -->
+<audio id="login-music" src="soundofsilence.mp3" preload="auto" loop autoplay></audio>
+
 <div class="tab">
 	<button class="tablinks" onclick="openPanel(event, 'panel-login')" id="defaultOpen">Inloggen</button>
 	<button class="tablinks" onclick="openPanel(event, 'panel-new-player')">Nieuwe Speler</button>
@@ -454,8 +457,6 @@ function showIntro() {
 	oskHide();
 	// Show intro panel
 	document.getElementById("panel-intro").style.display = "block";
-	// Start background music
-	try { parent.startMusic(); } catch(e) {}
 }
 
 // Try to login player
@@ -554,6 +555,10 @@ async function introBegrepen() {
 	// Disable button
 	document.getElementById('btn-begrepen').disabled = true;
 	document.getElementById('btn-begrepen').innerText = 'Even geduld...';
+
+	// Stop background music
+	var music = document.getElementById('login-music');
+	if (music) { music.pause(); music.currentTime = 0; }
 
 	if (pendingAction && pendingAction.type === 'login') {
 		// Now actually login - this starts the game
