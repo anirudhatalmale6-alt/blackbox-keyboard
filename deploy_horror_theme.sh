@@ -37,7 +37,18 @@ cp "$REPO_DIR/theblackbox.html" "$HTML_DIR/"
 echo "Copying connect.html..."
 cp "$REPO_DIR/connect.html" "$HTML_DIR/"
 
-# 7. Also update the copy in /opt/theblackbox/html/ if it exists
+# 7. Copy shutdown.php
+echo "Copying shutdown.php..."
+cp "$REPO_DIR/shutdown.php" "$HTML_DIR/"
+
+# 8. Setup sudo permission for www-data to shutdown
+if [ ! -f "/etc/sudoers.d/blackbox-shutdown" ]; then
+    echo "Setting up shutdown permission for web server..."
+    echo "www-data ALL=(ALL) NOPASSWD: /sbin/shutdown" > /etc/sudoers.d/blackbox-shutdown
+    chmod 440 /etc/sudoers.d/blackbox-shutdown
+fi
+
+# 9. Also update the copy in /opt/theblackbox/html/ if it exists
 if [ -d "/opt/theblackbox/html" ]; then
     echo "Also updating /opt/theblackbox/html/..."
     cp "$REPO_DIR/login.html" "/opt/theblackbox/html/"

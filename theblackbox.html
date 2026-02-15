@@ -7,6 +7,15 @@
 	font-family: 'Creepster';
 	src: url('Creepster-Regular.ttf') format('truetype');
 }
+@keyframes flicker {
+	0%, 100% { opacity: 1; }
+	42% { opacity: 0.3; }
+	43% { opacity: 1; }
+	44% { opacity: 0.7; }
+	45% { opacity: 1; }
+	81% { opacity: 0.2; }
+	82% { opacity: 1; }
+}
 @keyframes hintPulse {
 	0%, 100% { box-shadow: 0 0 5px rgba(200,0,0,0.3); }
 	50% { box-shadow: 0 0 12px rgba(200,0,0,0.7), 0 0 20px rgba(150,0,0,0.3); }
@@ -87,7 +96,7 @@
 	<span id="tbbx-status"><img id="icon-wifi-connected" class="" src="icons/wifi-grey.32x32.png"> </span>
 	<span id="tbbx-player"><center id="tbbx-player-text"></center></span>
 	<span id="tbbx-hint-btn"><button id="button-hint" onclick="requestHint()">HINT</button></span>
-	<span id="tbbx-logout"><button id="button-player-logout" onclick="playerLogout()"><img id="icon-player-logout" class="" src="icons/power-black.32x32.png" /></button></span>
+	<span id="tbbx-logout"><button id="button-player-logout" onclick="showPowerMenu()"><img id="icon-player-logout" class="" src="icons/power-black.32x32.png" /></button></span>
 </div>
 <div id="tbbx-challenge"> <iframe id="tbbx-challenge-frame" height="100%" width="100%" style="border: 0px;" allowfullscreen></iframe> </div>
 
@@ -110,6 +119,32 @@
 <div style="display:flex;gap:15px;justify-content:center;">
 <button onclick="confirmHint()" style="font-size:1.1em;background:#1a0505;color:#c00;border:2px solid #800;border-radius:8px;padding:10px 30px;cursor:pointer;">Ja, geef hint</button>
 <button onclick="cancelHint()" style="font-size:1.1em;background:#1a1a1a;color:#888;border:2px solid #333;border-radius:8px;padding:10px 30px;cursor:pointer;">Annuleren</button>
+</div>
+</div>
+
+<!-- Power menu overlay -->
+<div id="power-menu" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:100000;">
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:85%;">
+<div style="font-family:'Creepster',cursive;font-size:1.6em;color:#f44;letter-spacing:3px;margin-bottom:30px;text-shadow:0 0 15px rgba(200,0,0,0.5);">Wat wil je doen?</div>
+<button onclick="doPause()" style="display:block;width:100%;margin-bottom:15px;font-family:'Creepster',cursive;font-size:1.2em;background:linear-gradient(180deg,#2a0808,#150404);color:#f44;border:2px solid #800;border-radius:10px;padding:18px 20px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;">Pauze / Ander Slachtoffer</button>
+<button onclick="showShutdown()" style="display:block;width:100%;margin-bottom:25px;font-family:'Creepster',cursive;font-size:1.2em;background:linear-gradient(180deg,#1a0505,#0a0202);color:#888;border:2px solid #444;border-radius:10px;padding:18px 20px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;">Uitzetten</button>
+<button onclick="closePowerMenu()" style="font-family:'Creepster',cursive;font-size:1em;background:transparent;color:#666;border:1px solid #333;border-radius:8px;padding:10px 30px;cursor:pointer;letter-spacing:1px;">Annuleren</button>
+</div>
+</div>
+
+<!-- Shutdown confirmation page -->
+<div id="shutdown-page" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at center,#1a0505 0%,#0a0202 50%,#000 100%);z-index:100001;">
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:85%;">
+<div style="font-family:'Creepster',cursive;font-size:1.8em;color:#f44;letter-spacing:3px;margin-bottom:20px;text-shadow:0 0 20px rgba(200,0,0,0.6);">Uitzetten</div>
+<div style="font-family:'Creepster',cursive;font-size:1.1em;color:#ccc;line-height:1.6;margin-bottom:30px;">Wacht circa <span style="color:#f44;font-weight:bold;">15 seconden</span> nadat je op begrepen hebt gedrukt,<br>trek dan de stekker uit het stopcontact.</div>
+<button onclick="doShutdown()" style="display:block;width:100%;font-family:'Creepster',cursive;font-size:1.5em;background:linear-gradient(180deg,#3a0a0a,#1a0505);color:#f44;border:3px solid #c00;border-radius:12px;padding:20px 30px;cursor:pointer;letter-spacing:3px;text-transform:uppercase;box-shadow:0 0 30px rgba(200,0,0,0.4);">Begrepen</button>
+</div>
+</div>
+
+<!-- Shutdown message (shown after begrepen) -->
+<div id="shutdown-msg" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:100002;">
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+<div style="font-family:'Creepster',cursive;font-size:1.4em;color:#c00;letter-spacing:3px;animation:flicker 2s infinite;">Systeem wordt afgesloten...</div>
 </div>
 </div>
 
@@ -223,6 +258,35 @@ function checkForTips() {
 		.catch(function(e) {});
 }
 setInterval(checkForTips, 2000);
+
+// ========== POWER MENU ==========
+function showPowerMenu() {
+	document.getElementById('power-menu').style.display = 'block';
+}
+
+function closePowerMenu() {
+	document.getElementById('power-menu').style.display = 'none';
+}
+
+function doPause() {
+	document.getElementById('power-menu').style.display = 'none';
+	playerLogout();
+}
+
+function showShutdown() {
+	document.getElementById('power-menu').style.display = 'none';
+	document.getElementById('shutdown-page').style.display = 'block';
+}
+
+function doShutdown() {
+	document.getElementById('shutdown-page').style.display = 'none';
+	document.getElementById('shutdown-msg').style.display = 'block';
+	stopMusic();
+	// Stop the server
+	fetch(theBlackBoxBase + 'action?shutdown=1').catch(function(e) {});
+	// Trigger OS shutdown
+	fetch('/theblackbox/shutdown.php').catch(function(e) {});
+}
 
 // ========== HINT REQUEST SYSTEM ==========
 function requestHint() {
