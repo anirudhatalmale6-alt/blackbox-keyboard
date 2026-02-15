@@ -29,17 +29,22 @@ cp "$REPO_DIR/Creepster-Regular.ttf" "$HTML_DIR/"
 echo "Copying clown.jpg..."
 cp "$REPO_DIR/clown.jpg" "$HTML_DIR/"
 
-# 5. Copy theblackbox.html (main frame with hint button)
+# 5. Copy theblackbox.html (main frame with hint button + styled banner)
 echo "Copying theblackbox.html..."
 cp "$REPO_DIR/theblackbox.html" "$HTML_DIR/"
 
-# 6. Also update the copy in /opt/theblackbox/html/ if it exists
+# 6. Copy connect.html (horror styled wifi page)
+echo "Copying connect.html..."
+cp "$REPO_DIR/connect.html" "$HTML_DIR/"
+
+# 7. Also update the copy in /opt/theblackbox/html/ if it exists
 if [ -d "/opt/theblackbox/html" ]; then
     echo "Also updating /opt/theblackbox/html/..."
     cp "$REPO_DIR/login.html" "/opt/theblackbox/html/"
     cp "$REPO_DIR/finish.html" "/opt/theblackbox/html/"
     cp "$REPO_DIR/highscore.html" "/opt/theblackbox/html/"
     cp "$REPO_DIR/theblackbox.html" "/opt/theblackbox/html/"
+    cp "$REPO_DIR/connect.html" "/opt/theblackbox/html/"
     cp "$REPO_DIR/Creepster-Regular.ttf" "/opt/theblackbox/html/"
     cp "$REPO_DIR/clown.jpg" "/opt/theblackbox/html/"
 fi

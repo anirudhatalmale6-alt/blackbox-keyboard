@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* ========== LOCAL FONT ========== */
+@font-face {
+	font-family: 'Creepster';
+	src: url('Creepster-Regular.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+/* ========== HORROR ANIMATIONS ========== */
+@keyframes flicker {
+	0%, 100% { opacity: 1; }
+	41% { opacity: 1; }
+	42% { opacity: 0.3; }
+	43% { opacity: 1; }
+	44% { opacity: 0.7; }
+	45% { opacity: 1; }
+	80% { opacity: 1; }
+	81% { opacity: 0.2; }
+	82% { opacity: 1; }
+}
+
+@keyframes pulseGlow {
+	0%, 100% { box-shadow: 0 0 8px rgba(200, 0, 0, 0.4); }
+	50% { box-shadow: 0 0 20px rgba(200, 0, 0, 0.8), 0 0 40px rgba(150, 0, 0, 0.3); }
+}
+
+@keyframes fogDrift {
+	0% { background-position: 0% 50%, 100% 50%; }
+	50% { background-position: 100% 50%, 0% 50%; }
+	100% { background-position: 0% 50%, 100% 50%; }
+}
+
+@keyframes subtlePulse {
+	0%, 100% { border-color: #500; }
+	50% { border-color: #c00; }
+}
+
+@keyframes scanline {
+	0% { top: -5%; }
+	100% { top: 105%; }
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	background: radial-gradient(ellipse at center, #1a0505 0%, #0a0202 50%, #000 100%);
+	color: #c00;
+	font-family: 'Creepster', cursive;
+	min-height: 100vh;
+	overflow-x: hidden;
+	position: relative;
+}
+
+/* Fog overlay */
+body::before {
+	content: '';
+	position: fixed;
+	top: 0; left: 0;
+	width: 100%; height: 100%;
+	background:
+		radial-gradient(ellipse at 20% 50%, rgba(80,0,0,0.15) 0%, transparent 60%),
+		radial-gradient(ellipse at 80% 50%, rgba(60,0,0,0.1) 0%, transparent 60%);
+	animation: fogDrift 20s ease-in-out infinite;
+	pointer-events: none;
+	z-index: 0;
+}
+
+/* Scanline effect */
+body::after {
+	content: '';
+	position: fixed;
+	top: 0; left: 0;
+	width: 100%; height: 5px;
+	background: rgba(200, 0, 0, 0.06);
+	animation: scanline 4s linear infinite;
+	pointer-events: none;
+	z-index: 1;
+}
+
+/* ========== TABS ========== */
+.tab {
+	overflow: hidden;
+	background: linear-gradient(180deg, #2a0808, #150404);
+	border-bottom: 2px solid #600;
+	display: flex;
+	position: relative;
+	z-index: 2;
+}
+
+.tab button {
+	background: transparent;
+	border: none;
+	outline: none;
+	cursor: pointer;
+	padding: 14px 16px;
+	font-size: 1em;
+	font-family: 'Creepster', cursive;
+	color: #944;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	transition: all 0.3s ease;
+	flex: 1;
+	position: relative;
+}
+
+.tab button:hover {
+	color: #f44;
+	background: rgba(200, 0, 0, 0.1);
+}
+
+.tab button.active {
+	color: #f44;
+	background: rgba(200, 0, 0, 0.15);
+	text-shadow: 0 0 10px rgba(200, 0, 0, 0.5);
+}
+
+.tab button.active::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 20%;
+	width: 60%;
+	height: 2px;
+	background: #c00;
+	box-shadow: 0 0 10px rgba(200, 0, 0, 0.8);
+}
+
+/* ========== TAB CONTENT ========== */
+.tabcontent {
+	display: none;
+	padding: 20px 15px;
+	position: relative;
+	z-index: 2;
+}
+
+.tabcontent h3 {
+	font-family: 'Creepster', cursive;
+	color: #e00;
+	text-transform: uppercase;
+	letter-spacing: 3px;
+	text-align: center;
+	font-size: 1.4em;
+	margin-bottom: 15px;
+	animation: flicker 4s infinite;
+	text-shadow: 0 0 10px rgba(200, 0, 0, 0.5);
+}
+
+/* ========== CONNECT PANEL ========== */
+#network-connect-hint {
+	font-family: 'Creepster', cursive;
+	font-size: 1em;
+	text-align: center;
+	color: #f88;
+	font-style: italic;
+	min-height: 24px;
+	text-shadow: 0 0 8px rgba(200, 0, 0, 0.3);
+}
+
+.network-connect-details {
+	width: 100%;
+	margin: 8px 0;
+}
+
+.network-connect-security {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+	margin: 5px 0;
+}
+
+.network-connect-security-item {
+	padding: 6px 10px;
+}
+
+.network-connect-security-item center {
+	font-family: 'Creepster', cursive;
+	font-size: 1em;
+	color: #f44;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+}
+
+input[type="text"] {
+	width: 100%;
+	background: rgba(20, 5, 5, 0.8);
+	border: 1px solid #600;
+	color: #f88;
+	padding: 8px 10px;
+	font-size: 1em;
+	border-radius: 4px;
+	font-family: monospace;
+	animation: subtlePulse 3s infinite;
+}
+
+input[type="button"], button.horror-btn {
+	background: linear-gradient(180deg, #3a0a0a, #1a0505);
+	border: 2px solid #800;
+	color: #f44;
+	font-family: 'Creepster', cursive;
+	font-size: 1.2em;
+	padding: 12px 30px;
+	border-radius: 8px;
+	cursor: pointer;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	transition: all 0.3s ease;
+	animation: pulseGlow 3s infinite;
+}
+
+input[type="button"]:hover, button.horror-btn:hover {
+	background: linear-gradient(180deg, #500a0a, #2a0808);
+	box-shadow: 0 0 25px rgba(200, 0, 0, 0.6);
+	color: #f88;
+}
+
+/* ========== AP LIST ========== */
+.network-aps-details {
+	width: 100%;
+}
+
+.network-aps-details-list {
+	display: grid;
+	grid-template-columns: 1fr 8fr 1fr;
+}
+
+.network-aps-details-list-window {
+	border: 1px solid #600;
+	padding: 10px;
+	background: rgba(10, 2, 2, 0.6);
+	border-radius: 6px;
+}
+
+.network-aps-details-list-links {
+	height: 200px;
+	list-style-type: none;
+	overflow: hidden;
+	overflow-y: scroll;
+	padding: 0;
+	margin: 0;
+}
+
+.network-aps-details-list-links::-webkit-scrollbar {
+	width: 6px;
+}
+
+.network-aps-details-list-links::-webkit-scrollbar-track {
+	background: #0a0202;
+}
+
+.network-aps-details-list-links::-webkit-scrollbar-thumb {
+	background: #600;
+	border-radius: 3px;
+}
+
+.network-aps-details-list-link {
+	display: grid;
+	grid-template-columns: 3fr 2fr 1fr;
+	padding: 6px 4px;
+	border-bottom: 1px solid rgba(100, 0, 0, 0.3);
+	transition: background 0.2s;
+}
+
+.network-aps-details-list-link:hover {
+	background: rgba(200, 0, 0, 0.1);
+}
+
+.network-aps-details-list-link-item {
+	display: inline;
+	font-family: monospace;
+	font-size: 0.85em;
+	color: #c88;
+	text-align: center;
+}
+
+/* ========== MESSAGE PANEL ========== */
+#network-message {
+	font-family: 'Creepster', cursive;
+	font-size: 1.3em;
+	text-align: center;
+	color: #f44;
+	letter-spacing: 2px;
+	text-shadow: 0 0 15px rgba(200, 0, 0, 0.4);
+	animation: flicker 4s infinite;
+}
+</style>
+</head>
+<body>
+
+<div class="tab">
+	<button class="tablinks" onclick="openPanel(event, 'panel-network-connect')" id="defaultOpen">Verbinden</button>
+	<button class="tablinks" onclick="openPanel(event, 'panel-network-aps')">Netwerken</button>
+</div>
+
+<div id="panel-network-connect" class="tabcontent">
+	<h3>Verbinding Maken</h3>
+
+	<div class="network-connect-details">
+	<div id="network-connect-hint">
+	</div>
+	</div>
+
+	<br />
+
+	<div class="network-connect-details">
+
+	<div class="network-connect-security">
+	<div class="network-connect-security-item">
+	<center>SSID</center>
+	</div>
+	<div class="network-connect-security-item">
+	<center>Wachtwoord</center>
+	</div>
+	</div>
+
+	<div class="network-connect-security">
+	<div class="network-connect-security-item">
+	<input type="text" id="input-wifi-ssid" value="" disabled />
+	</div>
+	<div class="network-connect-security-item">
+	<input type="text" id="input-wifi-psk" value="" disabled />
+	</div>
+	</div>
+
+	</div>
+
+	<br />
+
+	<div class="network-connect-details">
+	<center>
+	<input type="button" id="button-network-connect" value="   Verbinden   " onclick="requestAPConnect()" />
+	</center>
+	</div>
+
+	<br />
+
+	<div class="network-connect-details">
+	</div>
+</div>
+
+<div id="panel-network-aps" class="tabcontent">
+	<h3>Beschikbare Netwerken</h3>
+
+	<br />
+
+	<div class="network-aps-details">
+	<div class="network-aps-details-list">
+		<div>
+		</div>
+		<div class="network-aps-details-list-window">
+			<ul id="network-aps-details-list-links" class="network-aps-details-list-links">
+			</ul>
+		</div>
+		<div>
+		</div>
+	</div>
+	</div>
+
+	<br /><br />
+
+	<div class="network-aps-details" style="">
+	<div class="network-aps-details-list">
+	<div>
+	</div>
+	<div>
+	<input type="button" id="button-network-aps-scan" value="Scannen" style="float: right" onclick="requestAPScan()" />
+	</div>
+	<div>
+	</div>
+	</div>
+	</div>
+
+	<br />
+</div>
+
+<div id="panel-network-message" class="tabcontent">
+
+	<br /><br />
+	<br /><br />
+
+	<div id="network-message">
+	</div>
+
+	<br /><br />
+	<br /><br />
+
+</div>
+
+<script>
+// REST server address
+const theBlackBoxBaseURL = "http://localhost:5000/";
+
+// The number of connection attempts per hint
+const connectAttemptsPerHint = 5;
+
+// WiFi AP connection timeout (in seconds)
+const connectTimeout = 10;
+
+// The number of times a connection has been attempted
+var connectAttempts = 0;
+
+// Player hints (in reverse order, popped from the top)
+var connectHints = [
+		"Maybe if a WiFi hotspot was created...",
+		"I wonder what would happen if I could connect...",
+		"Can't seem to find this connection...",
+		];
+
+// Holds the number of remaining retries until a
+// connection attempt is judged a failure
+var connectRetries = 0;
+
+// Display selected panel
+function openPanel(evt, panelName) {
+	let i, tabcontent, tablinks;
+
+	// Hide panels
+	tabcontent = document.getElementsByClassName("tabcontent");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+
+	// Deactivate tabs
+	tablinks = document.getElementsByClassName("tablinks");
+	for (i = 0; i < tablinks.length; i++) {
+		tablinks[i].className = tablinks[i].className.replace(" active", "");
+	}
+
+	// Display panel
+	document.getElementById(panelName).style.display = "block";
+	// Activate tab
+	evt.currentTarget.className += " active";
+}
+
+// Display selected panel
+function showMessage(message) {
+	let i, tabcontent, tablinks;
+
+	// Hide panels
+	tabcontent = document.getElementsByClassName("tabcontent");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+
+	// Get message div
+	let divElem = document.getElementById("network-message");
+	divElem.innerHTML = message;
+
+	// Display panel
+	document.getElementById("panel-network-message").style.display = "block";
+}
+
+// Get network information
+async function getNetworkInfo() {
+	// Define default return value
+	let retval = {};
+
+	// Create network information URL
+	let urlNetworkInfo = theBlackBoxBaseURL+"network/status";
+	try {
+		// Request network information
+		let response = await fetch(urlNetworkInfo);
+
+		// Process response
+		retval = await response.json();
+	} catch (error) {
+	}
+
+	return retval;
+}
+
+// Request WiFi AP connect/disconnect
+async function requestAPConnection(enable) {
+	// Create WiFi action URL
+	let urlRequestWiFiAction = theBlackBoxBaseURL+"network/action?";
+
+	if (enable) {
+		// Connect to AP
+		urlRequestWiFiAction += "connect=1";
+	} else {
+		// Disconnect from AP
+		urlRequestWiFiAction += "disconnect=1";
+	}
+	try {
+		// Request Access Point connect
+		let response = await fetch(urlRequestWiFiAction);
+
+		// Process response
+		responseJSON = await response.json();
+	} catch (error) {
+	}
+}
+
+// Request WiFi AP connect
+async function requestAPConnect() {
+	await requestAPConnection(true);
+	startConnectTimeout();
+}
+
+// Request WiFi AP disconnect
+async function requestAPDisconnect() {
+	await requestAPConnection(false);
+}
+
+// Request WiFi AP scan
+async function requestAPScan() {
+	// Create AP scan URL
+	let urlRequestAPScan = theBlackBoxBaseURL+"network/action?scan=1";
+	try {
+		// Request Access Point scan
+		let response = await fetch(urlRequestAPScan);
+
+		// Process response
+		responseJSON = await response.json();
+	} catch (error) {
+	}
+}
+
+// Start a connection attempt timeout
+function startConnectTimeout() {
+	showMessage("Verbinding maken met netwerk, even geduld...");
+	// Equivalent to 15 seconds
+	connectAttempts += 1
+	connectRetries = connectTimeout;
+	setTimeout(testConnectionTimeout, 1000);
+}
+
+// Test whether a connection attempt has timed out
+async function testConnectionTimeout() {
+	connectRetries -= 1;
+
+	// Get network info
+	responseJSON = await getNetworkInfo();
+	if (responseJSON.connected) {
+		showMessage("Verbonden met netwerk, even geduld...");
+	} else {
+		if (connectRetries > 0) {
+			setTimeout(testConnectionTimeout, 1000);
+		} else {
+			// Check connection attempts
+			if (connectAttempts >= connectAttemptsPerHint) {
+				if (connectHints.length > 0) {
+					let playerHint = connectHints.pop();
+					divElem = document.getElementById("network-connect-hint");
+					divElem.innerHTML = playerHint;
+				}
+				connectAttempts = 0;
+			}
+
+			// Stop trying to connect to Access Point
+			requestAPDisconnect();
+
+			// Return to connection panel
+			document.getElementById("defaultOpen").click();
+		}
+	}
+}
+
+// Update Access Point list
+async function updateAPList() {
+	// Get Access Point list
+	let accessPointList = document.getElementById("network-aps-details-list-links");
+
+	// Create AP list URL
+	let urlAccessPointList = theBlackBoxBaseURL+"network/list";
+	try {
+		// Get Access Point list
+		let response = await fetch(urlAccessPointList);
+
+		// Process response
+		responseJSON = await response.json();
+
+		// Clear Access Point list
+		accessPointList.innerHTML = "";
+
+		responseJSON["access-points"].forEach((accessPoint) => {
+			let li = document.createElement("li");
+			linkHTML = "<div class=\"network-aps-details-list-link\">";
+			linkHTML += "<div class=\"network-aps-details-list-link-item\">"+accessPoint["ssid"]+"</div>";
+			linkHTML += "<div class=\"network-aps-details-list-link-item\">"+accessPoint["bssid"]+"</div>"
+			linkHTML += "<div class=\"network-aps-details-list-link-item\">"+accessPoint["strength"]+"%</div>";
+			linkHTML += "</div>";
+			li.innerHTML = linkHTML;
+			accessPointList.appendChild(li);
+		});
+	} catch (error) {
+	}
+}
+
+// Update the various panels on load
+async function updateContent() {
+	// Get network info
+	responseJSON = await getNetworkInfo();
+
+	// Get SSID element
+	ssidElem = document.getElementById("input-wifi-ssid");
+	ssidElem.value = responseJSON.ssid;
+
+	// Get PSK element
+	pskElem = document.getElementById("input-wifi-psk");
+	pskElem.value = responseJSON.psk;
+
+	requestAPScan();
+}
+
+// Refresh Access Point list every 5 seconds
+setInterval(updateAPList, 1000);
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+window.onload = updateContent();
+</script>
+
+</body>
+</html>

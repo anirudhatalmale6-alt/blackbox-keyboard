@@ -3,9 +3,82 @@
 <title>The BlackBox</title>
 <link rel="stylesheet" type="text/css" href="theblackbox.css">
 <style>
-#tbbx-banner { grid-template-columns: 1fr 10fr 2fr 1fr; }
-#tbbx-hint-btn { display:flex; align-items:center; justify-content:center; }
-#button-hint { background:inherit; border:1px solid #c00; color:#c00; font-size:0.9em; padding:4px 10px; border-radius:5px; cursor:pointer; font-family:inherit; letter-spacing:1px; }
+@font-face {
+	font-family: 'Creepster';
+	src: url('Creepster-Regular.ttf') format('truetype');
+}
+@keyframes hintPulse {
+	0%, 100% { box-shadow: 0 0 5px rgba(200,0,0,0.3); }
+	50% { box-shadow: 0 0 12px rgba(200,0,0,0.7), 0 0 20px rgba(150,0,0,0.3); }
+}
+@keyframes iconGlow {
+	0%, 100% { filter: drop-shadow(0 0 3px rgba(200,0,0,0.4)); }
+	50% { filter: drop-shadow(0 0 8px rgba(200,0,0,0.8)); }
+}
+#tbbx-banner {
+	grid-template-columns: 1fr 10fr 2fr 1fr;
+	background: linear-gradient(180deg, #1a0505 0%, #0a0202 100%);
+	border-bottom: 2px solid #600;
+}
+#tbbx-status {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+#icon-wifi-connected {
+	filter: brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(5000%) hue-rotate(0deg) brightness(100%) contrast(120%);
+	animation: iconGlow 3s ease-in-out infinite;
+}
+.tbbx-wifi-connected {
+	filter: brightness(0) saturate(100%) invert(38%) sepia(87%) saturate(4677%) hue-rotate(100deg) brightness(100%) contrast(92%) !important;
+	animation: iconGlow 3s ease-in-out infinite !important;
+}
+#tbbx-player {
+	font-family: 'Creepster', cursive;
+	text-shadow: 0 0 10px rgba(200,0,0,0.4);
+}
+#tbbx-hint-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+#button-hint {
+	background: linear-gradient(180deg, #2a0808, #150404);
+	border: 1px solid #800;
+	color: #f44;
+	font-size: 0.85em;
+	padding: 5px 12px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-family: 'Creepster', cursive;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	animation: hintPulse 3s ease-in-out infinite;
+	transition: all 0.3s ease;
+}
+#button-hint:active {
+	background: #3a0a0a;
+	box-shadow: 0 0 20px rgba(200,0,0,0.8);
+}
+#tbbx-logout {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+#button-player-logout {
+	background: transparent !important;
+	border: none !important;
+	cursor: pointer;
+	padding: 4px;
+}
+#icon-player-logout {
+	filter: brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(5000%) hue-rotate(0deg) brightness(100%) contrast(120%) !important;
+	animation: iconGlow 4s ease-in-out infinite;
+	transition: all 0.3s ease;
+}
+#icon-player-logout:active {
+	filter: brightness(0) saturate(100%) invert(25%) sepia(95%) saturate(5000%) hue-rotate(0deg) brightness(150%) contrast(120%) !important;
+}
 </style>
 </head>
 <body id="tbbx-body">
