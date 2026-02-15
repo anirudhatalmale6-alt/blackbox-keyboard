@@ -269,8 +269,17 @@ def patch_theblackbox():
         # Insert after the /challenge/action route
         action_route = 'self._rest_router.add_api_route("/challenge/action", self._rest_challenge_action, methods=["GET"])'
         if action_route in content:
+            # Detect indentation of the matched line
+            action_idx = content.find(action_route)
+            action_line_start = content.rfind("\n", 0, action_idx) + 1
+            action_indent = ""
+            for ch in content[action_line_start:action_idx]:
+                if ch in (" ", "\t"):
+                    action_indent += ch
+                else:
+                    break
             hint_route = (
-                '\n        self._rest_router.add_api_route("/challenge/hint", '
+                '\n' + action_indent + 'self._rest_router.add_api_route("/challenge/hint", '
                 'self._rest_challenge_hint, methods=["GET"])'
             )
             content = content.replace(action_route, action_route + hint_route)
