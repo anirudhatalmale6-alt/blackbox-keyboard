@@ -287,7 +287,9 @@ input[type="button"]:hover, button.horror-btn:hover {
 
 #button-network-aps-scan {
 	float: none !important;
-	width: 100%;
+	font-size: 0.8em !important;
+	padding: 6px 14px !important;
+	white-space: nowrap;
 }
 
 /* ========== MESSAGE PANEL ========== */
@@ -356,7 +358,10 @@ input[type="button"]:hover, button.horror-btn:hover {
 </div>
 
 <div id="panel-network-aps" class="tabcontent">
-	<h3>Beschikbare Netwerken</h3>
+	<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 10px;">
+		<h3 style="margin:0;">Beschikbare Netwerken</h3>
+		<input type="button" id="button-network-aps-scan" value="Scan" onclick="requestAPScan()" />
+	</div>
 
 	<div class="network-aps-details">
 	<div class="network-aps-details-list">
@@ -365,10 +370,6 @@ input[type="button"]:hover, button.horror-btn:hover {
 			</ul>
 		</div>
 	</div>
-	</div>
-
-	<div class="network-aps-details" style="margin-top:12px;">
-	<input type="button" id="button-network-aps-scan" value="Scannen" onclick="requestAPScan()" />
 	</div>
 </div>
 
