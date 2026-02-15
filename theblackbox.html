@@ -24,6 +24,19 @@
 </div>
 </div>
 
+<!-- Hint request button (fixed bottom-right) -->
+<div id="hint-btn" onclick="requestHint()" style="position:fixed;bottom:12px;right:12px;z-index:9990;font-family:'Creepster',cursive;font-size:1.1em;letter-spacing:2px;color:#f44;background:linear-gradient(180deg,#3a0a0a,#1a0505);border:2px solid #800;border-radius:10px;padding:10px 18px;cursor:pointer;text-transform:uppercase;box-shadow:0 0 15px rgba(200,0,0,0.4);transition:all 0.3s ease;">Hint</div>
+
+<!-- Hint confirm dialog -->
+<div id="hint-confirm" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#1a0a0a,#2a0505);border:3px solid #c00;border-radius:15px;padding:25px 30px;max-width:85%;z-index:100000;box-shadow:0 0 50px rgba(200,0,0,0.6);text-align:center;">
+<div style="font-family:'Creepster',cursive;font-size:1.4em;color:#f44;letter-spacing:2px;margin-bottom:12px;">Hint aanvragen?</div>
+<div id="hint-confirm-text" style="font-size:1em;color:#ccc;margin-bottom:18px;line-height:1.4;">Een hint kost <span style="color:#f44;font-weight:bold;">20 minuten</span> straftijd.<br><span id="hint-confirm-count" style="color:#888;"></span></div>
+<div style="display:flex;gap:15px;justify-content:center;">
+<button onclick="confirmHint()" style="font-family:'Creepster',cursive;font-size:1.2em;background:linear-gradient(180deg,#3a0a0a,#1a0505);color:#f44;border:2px solid #800;border-radius:8px;padding:10px 30px;cursor:pointer;letter-spacing:2px;">Ja, geef hint</button>
+<button onclick="cancelHint()" style="font-family:'Creepster',cursive;font-size:1.2em;background:linear-gradient(180deg,#1a1a1a,#0a0a0a);color:#888;border:2px solid #333;border-radius:8px;padding:10px 30px;cursor:pointer;letter-spacing:2px;">Annuleren</button>
+</div>
+</div>
+
 <!-- Background music player - persists across iframe changes -->
 <audio id="tbbx-music" src="soundofsilence.mp3" preload="auto" loop></audio>
 
@@ -134,6 +147,54 @@ function checkForTips() {
 		.catch(function(e) {});
 }
 setInterval(checkForTips, 2000);
+
+// ========== HINT REQUEST SYSTEM ==========
+function requestHint() {
+	// First check how many hints are left by peeking at server
+	document.getElementById('hint-confirm-count').textContent = '';
+	document.getElementById('hint-confirm').style.display = 'block';
+}
+
+function cancelHint() {
+	document.getElementById('hint-confirm').style.display = 'none';
+}
+
+function confirmHint() {
+	document.getElementById('hint-confirm').style.display = 'none';
+	fetch(theBlackBoxBase + 'challenge/hint')
+		.then(function(r) { return r.json(); })
+		.then(function(data) {
+			if (data.error) {
+				// Show error in tip popup
+				var msg = 'Geen hints beschikbaar';
+				if (data.error === 'no more hints') msg = 'Alle hints zijn al gebruikt voor deze challenge!';
+				if (data.error === 'no player logged in') msg = 'Eerst inloggen!';
+				if (data.error === 'no hints available') msg = 'Deze challenge heeft geen hints.';
+				document.getElementById('tip-message').textContent = msg;
+				var popup = document.getElementById('tip-popup');
+				popup.style.display = 'block';
+				popup.style.animation = 'tipPulse 2s ease-in-out infinite';
+				if (tipHideTimer) clearTimeout(tipHideTimer);
+				tipHideTimer = setTimeout(function() { popup.style.display = 'none'; }, 5000);
+			} else {
+				// Show hint in tip popup
+				var hintText = 'Hint ' + data.hint_number + '/' + data.hints_total + ': ' + data.hint;
+				document.getElementById('tip-message').textContent = hintText;
+				var popup = document.getElementById('tip-popup');
+				popup.style.display = 'block';
+				popup.style.animation = 'tipPulse 2s ease-in-out infinite';
+				if (tipHideTimer) clearTimeout(tipHideTimer);
+				tipHideTimer = setTimeout(function() { popup.style.display = 'none'; }, 15000);
+			}
+		})
+		.catch(function(e) {
+			document.getElementById('tip-message').textContent = 'Fout bij ophalen hint.';
+			var popup = document.getElementById('tip-popup');
+			popup.style.display = 'block';
+			if (tipHideTimer) clearTimeout(tipHideTimer);
+			tipHideTimer = setTimeout(function() { popup.style.display = 'none'; }, 5000);
+		});
+}
 </script>
 
 </body>
