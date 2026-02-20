@@ -156,15 +156,14 @@
       position: relative;
       height: 100%;
       min-height: 80px;
-      overflow: auto;
+      overflow: visible;
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
       align-content: flex-start;
       justify-content: center;
       padding: 4px;
-      touch-action: pan-y;
-      -webkit-overflow-scrolling: touch;
+      touch-action: none;
     }
 
     footer {
@@ -700,25 +699,32 @@ function setTileToBoardAbsolute(tile, x, y){
 }
 
 function attachDrag(tile){
-  var pointerId = null;
+  var dragging = false;
   var startX = 0, startY = 0;
   var origLeft = 0, origTop = 0;
   var fromTray = true;
 
-  tile.addEventListener("pointerdown", function(e){
+  function getXY(e){
+    if(e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if(e.changedTouches && e.changedTouches.length > 0) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function onStart(e){
     e.preventDefault();
-    pointerId = e.pointerId;
-    tile.setPointerCapture(pointerId);
+    e.stopPropagation();
+    if(dragging) return;
+    dragging = true;
     tile.classList.add("dragging");
 
     var rect = tile.getBoundingClientRect();
-    startX = e.clientX;
-    startY = e.clientY;
+    var pt = getXY(e);
+    startX = pt.x;
+    startY = pt.y;
 
     var onBoard = tile.dataset.onBoard === "1";
     fromTray = !onBoard;
 
-    // Allow tile to be visible outside board while dragging
     board.style.overflow = "visible";
 
     var boardRect = board.getBoundingClientRect();
@@ -731,21 +737,22 @@ function attachDrag(tile){
 
     origLeft = parseFloat(tile.style.left);
     origTop  = parseFloat(tile.style.top);
-  });
+  }
 
-  tile.addEventListener("pointermove", function(e){
-    if(pointerId === null || e.pointerId !== pointerId) return;
+  function onMove(e){
+    if(!dragging) return;
     e.preventDefault();
-    var dx = e.clientX - startX;
-    var dy = e.clientY - startY;
+    e.stopPropagation();
+    var pt = getXY(e);
+    var dx = pt.x - startX;
+    var dy = pt.y - startY;
     setTileToBoardAbsolute(tile, origLeft + dx, origTop + dy);
-  });
+  }
 
-  tile.addEventListener("pointerup", function(e){
-    if(pointerId === null || e.pointerId !== pointerId) return;
+  function onEnd(e){
+    if(!dragging) return;
     e.preventDefault();
-    tile.releasePointerCapture(pointerId);
-    pointerId = null;
+    dragging = false;
     tile.classList.remove("dragging");
     board.style.overflow = "hidden";
 
@@ -761,12 +768,21 @@ function attachDrag(tile){
         setTimeout(showOverlay, 350);
       }
     }
-  });
+  }
 
-  tile.addEventListener("pointercancel", function(){
-    pointerId = null;
-    tile.classList.remove("dragging");
-    board.style.overflow = "hidden";
+  // Touch events (primary for touchscreen)
+  tile.addEventListener("touchstart", onStart, { passive: false });
+  tile.addEventListener("touchmove", onMove, { passive: false });
+  tile.addEventListener("touchend", onEnd, { passive: false });
+  tile.addEventListener("touchcancel", function(){ dragging = false; tile.classList.remove("dragging"); board.style.overflow = "hidden"; });
+
+  // Mouse events (fallback for desktop testing)
+  tile.addEventListener("mousedown", function(e){
+    onStart(e);
+    function mm(ev){ onMove(ev); }
+    function mu(ev){ onEnd(ev); document.removeEventListener("mousemove", mm); document.removeEventListener("mouseup", mu); }
+    document.addEventListener("mousemove", mm);
+    document.addEventListener("mouseup", mu);
   });
 }
 
