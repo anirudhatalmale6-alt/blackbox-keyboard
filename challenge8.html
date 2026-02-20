@@ -248,12 +248,12 @@
     }
 
     #finalQR {
-      width: min(70vw, 300px);
+      width: min(50vw, 200px);
       aspect-ratio: 1/1;
       margin: 0 auto 10px;
       background: #fff;
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px;
       box-sizing: border-box;
     }
 
@@ -297,9 +297,22 @@
       letter-spacing: 1px;
     }
 
-    /* On-screen keyboard */
+    /* On-screen keyboard - popup from bottom */
     .kbd-wrap {
-      margin-top: 8px;
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, #1a0505, #0a0202);
+      border-top: 2px solid #600;
+      padding: 8px 6px;
+      z-index: 10000;
+      box-shadow: 0 -4px 20px rgba(200,0,0,0.3);
+    }
+
+    .kbd-wrap.visible {
+      display: block;
     }
 
     .kbd-row {
@@ -547,29 +560,47 @@ function buildKeyboard(){
       if(key === "SPATIE"){
         btn.textContent = "spatie";
         btn.classList.add("space");
-        btn.addEventListener("pointerdown", function(e){
-          e.preventDefault();
-          answerInput.value += " ";
-        });
+        btn.addEventListener("touchstart", function(e){ e.preventDefault(); answerInput.value += " "; }, { passive: false });
+        btn.addEventListener("mousedown", function(e){ e.preventDefault(); answerInput.value += " "; });
       } else if(key === "BSP"){
         btn.innerHTML = "&#9003;";
         btn.classList.add("wide");
-        btn.addEventListener("pointerdown", function(e){
-          e.preventDefault();
-          answerInput.value = answerInput.value.slice(0, -1);
-        });
+        btn.addEventListener("touchstart", function(e){ e.preventDefault(); answerInput.value = answerInput.value.slice(0, -1); }, { passive: false });
+        btn.addEventListener("mousedown", function(e){ e.preventDefault(); answerInput.value = answerInput.value.slice(0, -1); });
       } else {
         btn.textContent = key;
-        btn.addEventListener("pointerdown", function(e){
-          e.preventDefault();
-          answerInput.value += key;
-        });
+        btn.addEventListener("touchstart", function(e){ e.preventDefault(); answerInput.value += key; }, { passive: false });
+        btn.addEventListener("mousedown", function(e){ e.preventDefault(); answerInput.value += key; });
       }
       rowDiv.appendChild(btn);
     });
     kbdContainer.appendChild(rowDiv);
   });
 }
+
+function showKeyboard(){
+  kbdContainer.classList.add("visible");
+}
+
+function hideKeyboard(){
+  kbdContainer.classList.remove("visible");
+}
+
+// Show keyboard when input is tapped
+answerInput.addEventListener("touchstart", function(e){ e.preventDefault(); showKeyboard(); });
+answerInput.addEventListener("click", function(){ showKeyboard(); });
+
+// Hide keyboard when tapping outside input and keyboard
+document.addEventListener("touchstart", function(e){
+  if(!kbdContainer.contains(e.target) && e.target !== answerInput && e.target !== submitBtn){
+    hideKeyboard();
+  }
+}, { passive: true });
+document.addEventListener("mousedown", function(e){
+  if(!kbdContainer.contains(e.target) && e.target !== answerInput && e.target !== submitBtn){
+    hideKeyboard();
+  }
+});
 
 submitBtn.addEventListener("click", function(){
   const val = answerInput.value.trim().toLowerCase();
