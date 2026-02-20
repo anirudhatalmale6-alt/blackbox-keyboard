@@ -395,8 +395,6 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>Stel de QR samen</h1>
-    <div class="hint">Sleep de stukjes naar het raster</div>
     <div class="pill" id="progressPill">0 / 9 goed</div>
   </header>
 
@@ -955,6 +953,9 @@ function attachDrag(tile){
     var onBoard = tile.dataset.onBoard === "1";
     fromTray = !onBoard;
 
+    // Allow tile to be visible outside board while dragging
+    board.style.overflow = "visible";
+
     var boardRect = board.getBoundingClientRect();
     if(fromTray){
       var xInBoard = rect.left - boardRect.left;
@@ -981,6 +982,7 @@ function attachDrag(tile){
     tile.releasePointerCapture(pointerId);
     pointerId = null;
     tile.classList.remove("dragging");
+    board.style.overflow = "hidden";
 
     var snapped = trySnap(tile);
     if(!snapped){
@@ -999,6 +1001,7 @@ function attachDrag(tile){
   tile.addEventListener("pointercancel", function(){
     pointerId = null;
     tile.classList.remove("dragging");
+    board.style.overflow = "hidden";
   });
 }
 
