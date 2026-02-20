@@ -208,55 +208,188 @@
 
     .btn:active { transform: translateY(1px); }
 
-    /* Overlay met volledige QR */
+    /* Overlay met volledige QR + antwoord invoer */
     #overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.85);
+      background: rgba(0,0,0,0.92);
       display: none;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 18px;
+      padding: 10px;
       box-sizing: border-box;
       z-index: 9999;
+      overflow-y: auto;
     }
 
     #overlay .card {
       background: linear-gradient(135deg, #1a0a0a, #2a0505);
       border: 2px solid #c00;
       border-radius: 16px;
-      padding: 16px;
-      width: min(92vw, 400px);
+      padding: 14px;
+      width: min(96vw, 460px);
       box-shadow: 0 0 50px rgba(200,0,0,0.4);
       text-align: center;
+      margin: auto;
     }
 
     #overlay h3 {
-      margin: 0 0 8px;
-      font-size: 1.2em;
+      margin: 0 0 6px;
+      font-size: 1.1em;
       color: #f44;
       font-family: 'Creepster', cursive;
       letter-spacing: 2px;
     }
 
     #overlay p {
-      margin: 0 0 12px;
+      margin: 0 0 8px;
       color: #888;
-      font-size: 0.75em;
+      font-size: 0.72em;
       font-family: Arial, sans-serif;
     }
 
     #finalQR {
-      width: min(70vw, 300px);
+      width: min(45vw, 200px);
       aspect-ratio: 1/1;
-      margin: auto;
+      margin: 0 auto 10px;
       background: #fff;
-      border-radius: 10px;
-      padding: 10px;
+      border-radius: 8px;
+      padding: 8px;
       box-sizing: border-box;
     }
 
     #finalQR canvas { width: 100%; height: 100%; display: block; }
+
+    /* Answer input section */
+    .answer-section {
+      margin-top: 10px;
+      border-top: 1px solid #400;
+      padding-top: 10px;
+    }
+
+    .answer-section h3 {
+      margin-bottom: 8px;
+      font-size: 0.95em;
+    }
+
+    #answerInput {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 1em;
+      font-family: 'Creepster', cursive;
+      background: rgba(10,2,2,0.9);
+      border: 2px solid #600;
+      border-radius: 8px;
+      color: #f44;
+      text-align: center;
+      letter-spacing: 2px;
+      outline: none;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    #answerInput:focus {
+      border-color: #c00;
+      box-shadow: 0 0 15px rgba(200,0,0,0.4);
+    }
+
+    #answerInput::placeholder {
+      color: #555;
+      letter-spacing: 1px;
+    }
+
+    /* On-screen keyboard */
+    .kbd-wrap {
+      margin-top: 8px;
+    }
+
+    .kbd-row {
+      display: flex;
+      justify-content: center;
+      gap: 3px;
+      margin-bottom: 3px;
+    }
+
+    .kbd-key {
+      min-width: 28px;
+      height: 36px;
+      background: linear-gradient(180deg, #2a0808, #150404);
+      border: 1px solid #500;
+      border-radius: 5px;
+      color: #e44;
+      font-family: 'Creepster', cursive;
+      font-size: 0.85em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    .kbd-key:active {
+      background: linear-gradient(180deg, #400808, #2a0404);
+      border-color: #c00;
+      transform: scale(0.95);
+    }
+
+    .kbd-key.wide {
+      min-width: 50px;
+      font-size: 0.7em;
+      padding: 0 6px;
+    }
+
+    .kbd-key.space {
+      flex: 1;
+      max-width: 160px;
+    }
+
+    /* Submit button */
+    #submitAnswer {
+      margin-top: 8px;
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      font-family: 'Creepster', cursive;
+      background: linear-gradient(180deg, #3a0808, #200404);
+      border: 2px solid #800;
+      border-radius: 8px;
+      color: #f44;
+      letter-spacing: 3px;
+      cursor: pointer;
+      text-transform: uppercase;
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+
+    #submitAnswer:active {
+      transform: scale(0.97);
+      background: linear-gradient(180deg, #500808, #300404);
+    }
+
+    #answerFeedback {
+      margin-top: 6px;
+      font-size: 0.8em;
+      color: #f44;
+      font-family: Arial, sans-serif;
+      min-height: 1.2em;
+    }
+
+    @keyframes shakeWrong {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+
+    .shake { animation: shakeWrong 0.4s ease-in-out; }
+
+    @keyframes successPulse {
+      0% { box-shadow: 0 0 10px rgba(0,200,0,0.3); }
+      50% { box-shadow: 0 0 40px rgba(0,200,0,0.8), 0 0 80px rgba(0,150,0,0.4); }
+      100% { box-shadow: 0 0 10px rgba(0,200,0,0.3); }
+    }
   </style>
 </head>
 <body>
@@ -288,8 +421,17 @@
 <div id="overlay">
   <div class="card">
     <h3>Scan deze QR</h3>
-    <p>Goed gedaan. Gebruik je telefoon om door te gaan.</p>
+    <p>Scan de code met je telefoon en bel het nummer.</p>
     <div id="finalQR"></div>
+
+    <div class="answer-section">
+      <h3>Wat hoorde je?</h3>
+      <p>Voer het geheime woord in dat je hoort als je belt.</p>
+      <input type="text" id="answerInput" placeholder="Typ het antwoord..." readonly autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      <div id="answerFeedback"></div>
+      <div class="kbd-wrap" id="keyboard"></div>
+      <button id="submitAnswer">Controleer</button>
+    </div>
   </div>
 </div>
 
@@ -614,13 +756,90 @@ function showOverlay(){
   const c = SimpleQR.makeCanvas(QR_TEXT, 420, QUIET);
   finalQR.appendChild(c);
   overlay.style.display = "flex";
-
-  // Mark challenge as complete
-  if(!challengeCompleted){
-    challengeCompleted = true;
-    fetch("http://127.0.0.1:5000/challenge/action?complete=1").catch(function(e){});
-  }
+  buildKeyboard();
 }
+
+/**
+ * -------------- ANSWER INPUT + ON-SCREEN KEYBOARD --------------
+ */
+const CORRECT_ANSWERS = ["rode ballon", "rodeballon"];
+const answerInput = document.getElementById("answerInput");
+const answerFeedback = document.getElementById("answerFeedback");
+const submitBtn = document.getElementById("submitAnswer");
+const kbdContainer = document.getElementById("keyboard");
+
+const KBD_ROWS = [
+  ["q","w","e","r","t","y","u","i","o","p"],
+  ["a","s","d","f","g","h","j","k","l"],
+  ["BSP","z","x","c","v","b","n","m","BSP"],
+  ["SPATIE"]
+];
+
+function buildKeyboard(){
+  kbdContainer.innerHTML = "";
+  KBD_ROWS.forEach(function(row){
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "kbd-row";
+    row.forEach(function(key){
+      const btn = document.createElement("button");
+      btn.className = "kbd-key";
+      btn.type = "button";
+      if(key === "SPATIE"){
+        btn.textContent = "spatie";
+        btn.classList.add("space");
+        btn.addEventListener("pointerdown", function(e){
+          e.preventDefault();
+          answerInput.value += " ";
+        });
+      } else if(key === "BSP"){
+        btn.innerHTML = "&#9003;";
+        btn.classList.add("wide");
+        btn.addEventListener("pointerdown", function(e){
+          e.preventDefault();
+          answerInput.value = answerInput.value.slice(0, -1);
+        });
+      } else {
+        btn.textContent = key;
+        btn.addEventListener("pointerdown", function(e){
+          e.preventDefault();
+          answerInput.value += key;
+        });
+      }
+      rowDiv.appendChild(btn);
+    });
+    kbdContainer.appendChild(rowDiv);
+  });
+}
+
+submitBtn.addEventListener("click", function(){
+  const val = answerInput.value.trim().toLowerCase();
+  if(!val){
+    answerFeedback.textContent = "Typ eerst een antwoord.";
+    return;
+  }
+  if(CORRECT_ANSWERS.indexOf(val) !== -1){
+    // Correct!
+    answerFeedback.style.color = "#3ddc97";
+    answerFeedback.textContent = "Correct! Je mag door...";
+    submitBtn.disabled = true;
+    submitBtn.style.borderColor = "#0a0";
+    submitBtn.style.color = "#3ddc97";
+    submitBtn.textContent = "Correct!";
+    overlay.querySelector(".card").style.animation = "successPulse 1s ease-in-out 2";
+    overlay.querySelector(".card").style.borderColor = "#0a0";
+    // Complete the challenge
+    if(!challengeCompleted){
+      challengeCompleted = true;
+      fetch("http://127.0.0.1:5000/challenge/action?complete=1").catch(function(e){});
+    }
+  } else {
+    // Wrong answer
+    answerFeedback.style.color = "#f44";
+    answerFeedback.textContent = "Fout! Probeer opnieuw.";
+    answerInput.classList.add("shake");
+    setTimeout(function(){ answerInput.classList.remove("shake"); }, 400);
+  }
+});
 
 function buildBoardAndTiles(){
   board.innerHTML = "";
