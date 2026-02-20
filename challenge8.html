@@ -249,12 +249,12 @@
     }
 
     #finalQR {
-      width: min(45vw, 200px);
+      width: min(70vw, 300px);
       aspect-ratio: 1/1;
       margin: 0 auto 10px;
       background: #fff;
       border-radius: 8px;
-      padding: 8px;
+      padding: 12px;
       box-sizing: border-box;
     }
 
@@ -418,8 +418,6 @@
 
 <div id="overlay">
   <div class="card">
-    <h3>Scan deze QR</h3>
-    <p>Scan de code met je telefoon en bel het nummer.</p>
     <div id="finalQR"></div>
 
     <div class="answer-section">
@@ -431,6 +429,7 @@
   </div>
 </div>
 
+<script src="qrcode.js"></script>
 <script>
 /**
  * QR text = phone number 0633028557
@@ -455,274 +454,40 @@ const finalQR = document.getElementById("finalQR");
 document.getElementById("shuffleBtn").addEventListener("click", () => shuffleTiles());
 
 /**
- * -------------- MINI QR GENERATOR --------------
+ * -------------- QR GENERATOR (uses qrcode.js library) --------------
  */
-(function(global){
-  function QR8bitByte(data){ this.mode=1; this.data=data; }
-  QR8bitByte.prototype = {
-    getLength:function(){ return this.data.length; },
-    write:function(buffer){ for(let i=0;i<this.data.length;i++){ buffer.put(this.data.charCodeAt(i),8); } }
-  };
-
-  function QRBitBuffer(){ this.buffer=[]; this.length=0; }
-  QRBitBuffer.prototype = {
-    get:function(i){ const b=Math.floor(i/8); return ((this.buffer[b] >>> (7 - i%8)) & 1) === 1; },
-    put:function(num, length){
-      for(let i=0;i<length;i++){ this.putBit(((num >>> (length - i - 1)) & 1) === 1); }
-    },
-    putBit:function(bit){
-      const b=Math.floor(this.length/8);
-      if(this.buffer.length<=b) this.buffer.push(0);
-      if(bit) this.buffer[b] |= (0x80 >>> (this.length % 8));
-      this.length++;
-    }
-  };
-
-  const EXP_TABLE = new Array(256);
-  const LOG_TABLE = new Array(256);
-  for(let i=0;i<8;i++) EXP_TABLE[i]=1<<i;
-  for(let i=8;i<256;i++) EXP_TABLE[i]=EXP_TABLE[i-4]^EXP_TABLE[i-5]^EXP_TABLE[i-6]^EXP_TABLE[i-8];
-  for(let i=0;i<255;i++) LOG_TABLE[EXP_TABLE[i]]=i;
-  function gexp(n){ while(n<0)n+=255; while(n>=256)n-=255; return EXP_TABLE[n]; }
-  function glog(n){ if(n<1) throw new Error("glog"); return LOG_TABLE[n]; }
-
-  function QRPolynomial(num, shift){
-    let offset=0;
-    while(offset<num.length && num[offset]===0) offset++;
-    this.num=new Array(num.length-offset+shift);
-    for(let i=0;i<num.length-offset;i++) this.num[i]=num[i+offset];
-  }
-  QRPolynomial.prototype = {
-    get:function(i){ return this.num[i]; },
-    getLength:function(){ return this.num.length; },
-    multiply:function(e){
-      const num=new Array(this.getLength()+e.getLength()-1).fill(0);
-      for(let i=0;i<this.getLength();i++){
-        for(let j=0;j<e.getLength();j++){
-          num[i+j]^=gexp(glog(this.get(i))+glog(e.get(j)));
-        }
-      }
-      return new QRPolynomial(num,0);
-    },
-    mod:function(e){
-      if(this.getLength()-e.getLength()<0) return this;
-      const ratio=glog(this.get(0))-glog(e.get(0));
-      const num=this.num.slice();
-      for(let i=0;i<e.getLength();i++){
-        num[i]^=gexp(glog(e.get(i))+ratio);
-      }
-      return new QRPolynomial(num,0).mod(e);
-    }
-  };
-
-  function getErrorCorrectPolynomial(errorCorrectLength){
-    let a=new QRPolynomial([1],0);
-    for(let i=0;i<errorCorrectLength;i++){
-      a=a.multiply(new QRPolynomial([1,gexp(i)],0));
-    }
-    return a;
-  }
-
-  const TYPE_NUMBER = 4;
-  const ECC = 0;
-
-  const RS_BLOCK = {
-    4: { 0: [[1, 100, 80]] }
-  };
-
-  function QRCode(data){
-    this.typeNumber=TYPE_NUMBER;
-    this.errorCorrectLevel=ECC;
-    this.modules=null;
-    this.moduleCount=0;
-    this.dataList=[new QR8bitByte(data)];
-  }
-
-  function getPatternPosition(){ return [6, 26]; }
-  function getMask(maskPattern, i, j){
-    switch(maskPattern){
-      case 0: return (i + j) % 2 === 0;
-      case 1: return i % 2 === 0;
-      case 2: return j % 3 === 0;
-      case 3: return (i + j) % 3 === 0;
-      default: return (i + j) % 2 === 0;
-    }
-  }
-
-  function getBCHDigit(data){
-    let digit=0;
-    while(data!==0){ digit++; data>>>=1; }
-    return digit;
-  }
-
-  function getBCHTypeInfo(data){
-    let d=data<<10;
-    const g=0b10100110111;
-    while(getBCHDigit(d)-getBCHDigit(g)>=0){
-      d ^= (g << (getBCHDigit(d)-getBCHDigit(g)));
-    }
-    return ((data<<10)|d) ^ 0b101010000010010;
-  }
-
-  function getData(dataList){
-    const buffer=new QRBitBuffer();
-    for(const data of dataList){
-      buffer.put(0b0100,4);
-      buffer.put(data.getLength(), 8);
-      data.write(buffer);
-    }
-    buffer.put(0,4);
-    while(buffer.length % 8 !== 0) buffer.putBit(false);
-    const totalDataCount = 80;
-    let pad=0;
-    while(buffer.buffer.length < totalDataCount){
-      buffer.put(pad ? 0x11 : 0xEC,8);
-      pad ^= 1;
-    }
-    return buffer;
-  }
-
-  function createBytes(buffer){
-    const dataBytes=[];
-    for(let i=0;i<buffer.buffer.length;i++) dataBytes.push(buffer.buffer[i]);
-    const ecCount = 20;
-    const dcCount = 80;
-    const dc = dataBytes.slice(0, dcCount);
-    const rsPoly = getErrorCorrectPolynomial(ecCount);
-    const rawPoly = new QRPolynomial(dc, rsPoly.getLength()-1);
-    const modPoly = rawPoly.mod(rsPoly);
-    const ec = new Array(rsPoly.getLength()-1).fill(0);
-    for(let i=0;i<ec.length;i++){
-      const modIndex = i + modPoly.getLength() - ec.length;
-      ec[i] = (modIndex >= 0) ? modPoly.get(modIndex) : 0;
-    }
-    return dc.concat(ec);
-  }
-
-  QRCode.prototype = {
-    isDark:function(row,col){ return this.modules[row][col]; },
-    getModuleCount:function(){ return this.moduleCount; },
-    make:function(){
-      this.moduleCount = this.typeNumber * 4 + 17;
-      this.modules = Array.from({length:this.moduleCount}, ()=>Array(this.moduleCount).fill(null));
-      this.setupPositionProbePattern(0,0);
-      this.setupPositionProbePattern(this.moduleCount-7,0);
-      this.setupPositionProbePattern(0,this.moduleCount-7);
-      this.setupTimingPattern();
-      this.setupAlignmentPattern();
-      this.setupTypeInfo(0);
-      const buffer = getData(this.dataList);
-      const data = createBytes(buffer);
-      this.mapData(data, 0);
-    },
-    setupPositionProbePattern:function(row,col){
-      for(let r=-1;r<=7;r++){
-        for(let c=-1;c<=7;c++){
-          if(row+r<=-1||this.moduleCount<=row+r||col+c<=-1||this.moduleCount<=col+c) continue;
-          const v = ( (0<=r&&r<=6&&(c===0||c===6)) ||
-                      (0<=c&&c<=6&&(r===0||r===6)) ||
-                      (2<=r&&r<=4&&2<=c&&c<=4) );
-          this.modules[row+r][col+c]=v;
-        }
-      }
-    },
-    setupTimingPattern:function(){
-      for(let i=8;i<this.moduleCount-8;i++){
-        if(this.modules[i][6]===null) this.modules[i][6]= i%2===0;
-        if(this.modules[6][i]===null) this.modules[6][i]= i%2===0;
-      }
-    },
-    setupAlignmentPattern:function(){
-      const pos = getPatternPosition();
-      for(let i=0;i<pos.length;i++){
-        for(let j=0;j<pos.length;j++){
-          const row=pos[i], col=pos[j];
-          if(this.modules[row][col]!==null) continue;
-          for(let r=-2;r<=2;r++){
-            for(let c=-2;c<=2;c++){
-              this.modules[row+r][col+c] =
-                (Math.max(Math.abs(r),Math.abs(c))===2) || (r===0&&c===0);
-            }
-          }
-        }
-      }
-    },
-    setupTypeInfo:function(maskPattern){
-      const data = (this.errorCorrectLevel << 3) | maskPattern;
-      const bits = getBCHTypeInfo(data);
-      for(let i=0;i<15;i++){
-        const mod = ((bits >>> i) & 1) === 1;
-        if(i<6) this.modules[i][8]=mod;
-        else if(i<8) this.modules[i+1][8]=mod;
-        else this.modules[this.moduleCount-15+i][8]=mod;
-      }
-      for(let i=0;i<15;i++){
-        const mod = ((bits >>> i) & 1) === 1;
-        if(i<8) this.modules[8][this.moduleCount - i - 1]=mod;
-        else if(i<9) this.modules[8][15 - i - 1 + 1]=mod;
-        else this.modules[8][15 - i - 1]=mod;
-      }
-      this.modules[this.moduleCount-8][8]=true;
-    },
-    mapData:function(data, maskPattern){
-      let inc=-1;
-      let row=this.moduleCount-1;
-      let bitIndex=0;
-      let byteIndex=0;
-      for(let col=this.moduleCount-1; col>0; col-=2){
-        if(col===6) col--;
-        while(true){
-          for(let c=0;c<2;c++){
-            if(this.modules[row][col-c]===null){
-              let dark=false;
-              if(byteIndex < data.length){
-                dark = ((data[byteIndex] >>> (7-bitIndex)) & 1) === 1;
-              }
-              const mask = getMask(maskPattern, row, col-c);
-              this.modules[row][col-c] = mask ? !dark : dark;
-              bitIndex++;
-              if(bitIndex===8){ bitIndex=0; byteIndex++; }
-            }
-          }
-          row += inc;
-          if(row<0 || this.moduleCount<=row){
-            row -= inc;
-            inc = -inc;
-            break;
-          }
+var SimpleQR = {
+  makeCanvas: function(text, sizePx, quietModules){
+    var typeNumber = 0; // auto-detect
+    var errorCorrectionLevel = 'M';
+    var qr = qrcode(typeNumber, errorCorrectionLevel);
+    qr.addData(text);
+    qr.make();
+    var count = qr.getModuleCount();
+    var quiet = quietModules || 4;
+    var modules = count + quiet * 2;
+    var canvas = document.createElement("canvas");
+    canvas.width = sizePx;
+    canvas.height = sizePx;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, sizePx, sizePx);
+    ctx.fillStyle = "#000";
+    var cell = sizePx / modules;
+    for(var r = 0; r < count; r++){
+      for(var c = 0; c < count; c++){
+        if(qr.isDark(r, c)){
+          var x = Math.round((c + quiet) * cell);
+          var y = Math.round((r + quiet) * cell);
+          var w = Math.round((c + quiet + 1) * cell) - x;
+          var h = Math.round((r + quiet + 1) * cell) - y;
+          ctx.fillRect(x, y, w, h);
         }
       }
     }
-  };
-
-  global.SimpleQR = {
-    makeCanvas: function(text, sizePx, quietModules){
-      const qr = new QRCode(text);
-      qr.make();
-      const count = qr.getModuleCount();
-      const quiet = quietModules ?? 4;
-      const modules = count + quiet*2;
-      const canvas = document.createElement("canvas");
-      canvas.width = sizePx;
-      canvas.height = sizePx;
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle="#fff";
-      ctx.fillRect(0,0,sizePx,sizePx);
-      ctx.fillStyle="#000";
-      const cell = sizePx / modules;
-      for(let r=0;r<count;r++){
-        for(let c=0;c<count;c++){
-          if(qr.isDark(r,c)){
-            const x=(c+quiet)*cell;
-            const y=(r+quiet)*cell;
-            ctx.fillRect(x,y,cell,cell);
-          }
-        }
-      }
-      return canvas;
-    }
-  };
-})(window);
+    return canvas;
+  }
+};
 
 /**
  * -------------- PUZZEL LOGICA --------------

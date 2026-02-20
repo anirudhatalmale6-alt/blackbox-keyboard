@@ -37,9 +37,10 @@ cp "$REPO_DIR/theblackbox.html" "$HTML_DIR/"
 echo "Copying connect.html..."
 cp "$REPO_DIR/connect.html" "$HTML_DIR/"
 
-# 7. Copy challenge8.html
-echo "Copying challenge8.html..."
+# 7. Copy challenge8.html + qrcode.js
+echo "Copying challenge8.html + qrcode.js..."
 cp "$REPO_DIR/challenge8.html" "$HTML_DIR/"
+cp "$REPO_DIR/qrcode.js" "$HTML_DIR/"
 
 # 8. Copy shutdown.php
 echo "Copying shutdown.php..."
@@ -61,6 +62,7 @@ if [ -d "/opt/theblackbox/html" ]; then
     cp "$REPO_DIR/theblackbox.html" "/opt/theblackbox/html/"
     cp "$REPO_DIR/connect.html" "/opt/theblackbox/html/"
     cp "$REPO_DIR/challenge8.html" "/opt/theblackbox/html/"
+    cp "$REPO_DIR/qrcode.js" "/opt/theblackbox/html/"
     cp "$REPO_DIR/Creepster-Regular.ttf" "/opt/theblackbox/html/"
     cp "$REPO_DIR/clown.jpg" "/opt/theblackbox/html/"
 fi
