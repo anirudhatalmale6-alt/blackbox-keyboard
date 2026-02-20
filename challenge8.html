@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>QR Puzzel</title>
+  <style>
+    @font-face {
+      font-family: 'Creepster';
+      src: url('Creepster-Regular.ttf') format('truetype');
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      42% { opacity: 0.3; }
+      43% { opacity: 1; }
+      44% { opacity: 0.7; }
+      81% { opacity: 0.2; }
+      82% { opacity: 1; }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 8px rgba(200,0,0,0.4); }
+      50% { box-shadow: 0 0 20px rgba(200,0,0,0.8), 0 0 40px rgba(150,0,0,0.3); }
+    }
+
+    @keyframes fogDrift {
+      0% { background-position: 0% 50%, 100% 50%; }
+      50% { background-position: 100% 50%, 0% 50%; }
+      100% { background-position: 0% 50%, 100% 50%; }
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      height: 100%;
+      background: radial-gradient(ellipse at center, #1a0505 0%, #0a0202 50%, #000 100%);
+      color: #c00;
+      font-family: 'Creepster', cursive;
+      overflow: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(80,0,0,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 50%, rgba(60,0,0,0.1) 0%, transparent 60%);
+      animation: fogDrift 20s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      padding: 5px 0 8px;
+    }
+
+    h1 {
+      font-size: 1.2em;
+      color: #f44;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      animation: flicker 4s infinite;
+      text-shadow: 0 0 10px rgba(200,0,0,0.5);
+      margin-bottom: 4px;
+    }
+
+    .hint {
+      color: #888;
+      font-size: 0.7em;
+      font-family: Arial, sans-serif;
+      letter-spacing: 0.5px;
+    }
+
+    .pill {
+      display: inline-block;
+      background: rgba(200,0,0,0.15);
+      border: 1px solid #600;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.75em;
+      color: #f44;
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .panel {
+      background: rgba(20,5,5,0.6);
+      border: 1px solid #400;
+      border-radius: 12px;
+      padding: 8px;
+    }
+
+    .panel h2 {
+      font-size: 0.8em;
+      color: #944;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    #board {
+      position: relative;
+      width: min(52vh, 340px);
+      aspect-ratio: 1/1;
+      margin: 0 auto;
+      background: rgba(15,2,2,0.8);
+      border-radius: 10px;
+      outline: 2px dashed rgba(200,0,0,0.15);
+      touch-action: none;
+      overflow: hidden;
+    }
+
+    .slot {
+      position: absolute;
+      border: 1px solid rgba(200,0,0,0.08);
+      box-sizing: border-box;
+    }
+
+    .tile {
+      position: absolute;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+      touch-action: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      background: #111;
+      border: 1px solid rgba(200,0,0,0.15);
+    }
+
+    .tile.dragging { opacity: 0.9; transform: scale(1.03); }
+
+    #tray {
+      position: relative;
+      height: 100%;
+      min-height: 80px;
+      overflow: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-content: flex-start;
+      justify-content: center;
+      padding: 4px;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    footer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 6px 0;
+      gap: 10px;
+    }
+
+    #status {
+      font-size: 0.7em;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: Arial, sans-serif;
+    }
+
+    #status .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(200,0,0,0.3);
+    }
+
+    #status.ok .dot { background: #3ddc97; }
+    #status.bad .dot { background: #ff5c7a; }
+
+    .btn {
+      background: linear-gradient(180deg, #2a0808, #150404);
+      border: 1px solid #600;
+      color: #f44;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.7em;
+      cursor: pointer;
+      font-family: 'Creepster', cursive;
+      letter-spacing: 1px;
+    }
+
+    .btn:active { transform: translateY(1px); }
+
+    /* Overlay met volledige QR */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      box-sizing: border-box;
+      z-index: 9999;
+    }
+
+    #overlay .card {
+      background: linear-gradient(135deg, #1a0a0a, #2a0505);
+      border: 2px solid #c00;
+      border-radius: 16px;
+      padding: 16px;
+      width: min(92vw, 400px);
+      box-shadow: 0 0 50px rgba(200,0,0,0.4);
+      text-align: center;
+    }
+
+    #overlay h3 {
+      margin: 0 0 8px;
+      font-size: 1.2em;
+      color: #f44;
+      font-family: 'Creepster', cursive;
+      letter-spacing: 2px;
+    }
+
+    #overlay p {
+      margin: 0 0 12px;
+      color: #888;
+      font-size: 0.75em;
+      font-family: Arial, sans-serif;
+    }
+
+    #finalQR {
+      width: min(70vw, 300px);
+      aspect-ratio: 1/1;
+      margin: auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    #finalQR canvas { width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Stel de QR samen</h1>
+    <div class="hint">Sleep de stukjes naar het raster</div>
+    <div class="pill" id="progressPill">0 / 9 goed</div>
+  </header>
+
+  <div class="main">
+    <section class="panel" style="flex:0 0 auto;">
+      <h2>Raster</h2>
+      <div id="board" aria-label="QR puzzel bord"></div>
+    </section>
+
+    <section class="panel" style="flex:1;min-height:0;">
+      <h2>Stukjes</h2>
+      <div id="tray" aria-label="QR puzzel stukjes"></div>
+    </section>
+  </div>
+
+  <footer>
+    <div id="status"><span class="dot"></span><span id="statusText">Plaats alle stukjes goed.</span></div>
+    <button class="btn" id="shuffleBtn">Hussel</button>
+  </footer>
+</div>
+
+<div id="overlay">
+  <div class="card">
+    <h3>Scan deze QR</h3>
+    <p>Goed gedaan. Gebruik je telefoon om door te gaan.</p>
+    <div id="finalQR"></div>
+  </div>
+</div>
+
+<script>
+/**
+ * QR text = phone number 0633028557
+ */
+const QR_TEXT = "tel:+31633028557";
+
+const GRID = 3;
+const QR_SIZE = 420;
+const QUIET = 4;
+const SNAP_PX = 28;
+const TILE_RADIUS = 6;
+
+const board = document.getElementById("board");
+const tray  = document.getElementById("tray");
+const pill  = document.getElementById("progressPill");
+const status = document.getElementById("status");
+const statusText = document.getElementById("statusText");
+
+const overlay = document.getElementById("overlay");
+const finalQR = document.getElementById("finalQR");
+
+document.getElementById("shuffleBtn").addEventListener("click", () => shuffleTiles());
+
+/**
+ * -------------- MINI QR GENERATOR --------------
+ */
+(function(global){
+  function QR8bitByte(data){ this.mode=1; this.data=data; }
+  QR8bitByte.prototype = {
+    getLength:function(){ return this.data.length; },
+    write:function(buffer){ for(let i=0;i<this.data.length;i++){ buffer.put(this.data.charCodeAt(i),8); } }
+  };
+
+  function QRBitBuffer(){ this.buffer=[]; this.length=0; }
+  QRBitBuffer.prototype = {
+    get:function(i){ const b=Math.floor(i/8); return ((this.buffer[b] >>> (7 - i%8)) & 1) === 1; },
+    put:function(num, length){
+      for(let i=0;i<length;i++){ this.putBit(((num >>> (length - i - 1)) & 1) === 1); }
+    },
+    putBit:function(bit){
+      const b=Math.floor(this.length/8);
+      if(this.buffer.length<=b) this.buffer.push(0);
+      if(bit) this.buffer[b] |= (0x80 >>> (this.length % 8));
+      this.length++;
+    }
+  };
+
+  const EXP_TABLE = new Array(256);
+  const LOG_TABLE = new Array(256);
+  for(let i=0;i<8;i++) EXP_TABLE[i]=1<<i;
+  for(let i=8;i<256;i++) EXP_TABLE[i]=EXP_TABLE[i-4]^EXP_TABLE[i-5]^EXP_TABLE[i-6]^EXP_TABLE[i-8];
+  for(let i=0;i<255;i++) LOG_TABLE[EXP_TABLE[i]]=i;
+  function gexp(n){ while(n<0)n+=255; while(n>=256)n-=255; return EXP_TABLE[n]; }
+  function glog(n){ if(n<1) throw new Error("glog"); return LOG_TABLE[n]; }
+
+  function QRPolynomial(num, shift){
+    let offset=0;
+    while(offset<num.length && num[offset]===0) offset++;
+    this.num=new Array(num.length-offset+shift);
+    for(let i=0;i<num.length-offset;i++) this.num[i]=num[i+offset];
+  }
+  QRPolynomial.prototype = {
+    get:function(i){ return this.num[i]; },
+    getLength:function(){ return this.num.length; },
+    multiply:function(e){
+      const num=new Array(this.getLength()+e.getLength()-1).fill(0);
+      for(let i=0;i<this.getLength();i++){
+        for(let j=0;j<e.getLength();j++){
+          num[i+j]^=gexp(glog(this.get(i))+glog(e.get(j)));
+        }
+      }
+      return new QRPolynomial(num,0);
+    },
+    mod:function(e){
+      if(this.getLength()-e.getLength()<0) return this;
+      const ratio=glog(this.get(0))-glog(e.get(0));
+      const num=this.num.slice();
+      for(let i=0;i<e.getLength();i++){
+        num[i]^=gexp(glog(e.get(i))+ratio);
+      }
+      return new QRPolynomial(num,0).mod(e);
+    }
+  };
+
+  function getErrorCorrectPolynomial(errorCorrectLength){
+    let a=new QRPolynomial([1],0);
+    for(let i=0;i<errorCorrectLength;i++){
+      a=a.multiply(new QRPolynomial([1,gexp(i)],0));
+    }
+    return a;
+  }
+
+  const TYPE_NUMBER = 4;
+  const ECC = 0;
+
+  const RS_BLOCK = {
+    4: { 0: [[1, 100, 80]] }
+  };
+
+  function QRCode(data){
+    this.typeNumber=TYPE_NUMBER;
+    this.errorCorrectLevel=ECC;
+    this.modules=null;
+    this.moduleCount=0;
+    this.dataList=[new QR8bitByte(data)];
+  }
+
+  function getPatternPosition(){ return [6, 26]; }
+  function getMask(maskPattern, i, j){
+    switch(maskPattern){
+      case 0: return (i + j) % 2 === 0;
+      case 1: return i % 2 === 0;
+      case 2: return j % 3 === 0;
+      case 3: return (i + j) % 3 === 0;
+      default: return (i + j) % 2 === 0;
+    }
+  }
+
+  function getBCHDigit(data){
+    let digit=0;
+    while(data!==0){ digit++; data>>>=1; }
+    return digit;
+  }
+
+  function getBCHTypeInfo(data){
+    let d=data<<10;
+    const g=0b10100110111;
+    while(getBCHDigit(d)-getBCHDigit(g)>=0){
+      d ^= (g << (getBCHDigit(d)-getBCHDigit(g)));
+    }
+    return ((data<<10)|d) ^ 0b101010000010010;
+  }
+
+  function getData(dataList){
+    const buffer=new QRBitBuffer();
+    for(const data of dataList){
+      buffer.put(0b0100,4);
+      buffer.put(data.getLength(), 8);
+      data.write(buffer);
+    }
+    buffer.put(0,4);
+    while(buffer.length % 8 !== 0) buffer.putBit(false);
+    const totalDataCount = 80;
+    let pad=0;
+    while(buffer.buffer.length < totalDataCount){
+      buffer.put(pad ? 0x11 : 0xEC,8);
+      pad ^= 1;
+    }
+    return buffer;
+  }
+
+  function createBytes(buffer){
+    const dataBytes=[];
+    for(let i=0;i<buffer.buffer.length;i++) dataBytes.push(buffer.buffer[i]);
+    const ecCount = 20;
+    const dcCount = 80;
+    const dc = dataBytes.slice(0, dcCount);
+    const rsPoly = getErrorCorrectPolynomial(ecCount);
+    const rawPoly = new QRPolynomial(dc, rsPoly.getLength()-1);
+    const modPoly = rawPoly.mod(rsPoly);
+    const ec = new Array(rsPoly.getLength()-1).fill(0);
+    for(let i=0;i<ec.length;i++){
+      const modIndex = i + modPoly.getLength() - ec.length;
+      ec[i] = (modIndex >= 0) ? modPoly.get(modIndex) : 0;
+    }
+    return dc.concat(ec);
+  }
+
+  QRCode.prototype = {
+    isDark:function(row,col){ return this.modules[row][col]; },
+    getModuleCount:function(){ return this.moduleCount; },
+    make:function(){
+      this.moduleCount = this.typeNumber * 4 + 17;
+      this.modules = Array.from({length:this.moduleCount}, ()=>Array(this.moduleCount).fill(null));
+      this.setupPositionProbePattern(0,0);
+      this.setupPositionProbePattern(this.moduleCount-7,0);
+      this.setupPositionProbePattern(0,this.moduleCount-7);
+      this.setupTimingPattern();
+      this.setupAlignmentPattern();
+      this.setupTypeInfo(0);
+      const buffer = getData(this.dataList);
+      const data = createBytes(buffer);
+      this.mapData(data, 0);
+    },
+    setupPositionProbePattern:function(row,col){
+      for(let r=-1;r<=7;r++){
+        for(let c=-1;c<=7;c++){
+          if(row+r<=-1||this.moduleCount<=row+r||col+c<=-1||this.moduleCount<=col+c) continue;
+          const v = ( (0<=r&&r<=6&&(c===0||c===6)) ||
+                      (0<=c&&c<=6&&(r===0||r===6)) ||
+                      (2<=r&&r<=4&&2<=c&&c<=4) );
+          this.modules[row+r][col+c]=v;
+        }
+      }
+    },
+    setupTimingPattern:function(){
+      for(let i=8;i<this.moduleCount-8;i++){
+        if(this.modules[i][6]===null) this.modules[i][6]= i%2===0;
+        if(this.modules[6][i]===null) this.modules[6][i]= i%2===0;
+      }
+    },
+    setupAlignmentPattern:function(){
+      const pos = getPatternPosition();
+      for(let i=0;i<pos.length;i++){
+        for(let j=0;j<pos.length;j++){
+          const row=pos[i], col=pos[j];
+          if(this.modules[row][col]!==null) continue;
+          for(let r=-2;r<=2;r++){
+            for(let c=-2;c<=2;c++){
+              this.modules[row+r][col+c] =
+                (Math.max(Math.abs(r),Math.abs(c))===2) || (r===0&&c===0);
+            }
+          }
+        }
+      }
+    },
+    setupTypeInfo:function(maskPattern){
+      const data = (this.errorCorrectLevel << 3) | maskPattern;
+      const bits = getBCHTypeInfo(data);
+      for(let i=0;i<15;i++){
+        const mod = ((bits >>> i) & 1) === 1;
+        if(i<6) this.modules[i][8]=mod;
+        else if(i<8) this.modules[i+1][8]=mod;
+        else this.modules[this.moduleCount-15+i][8]=mod;
+      }
+      for(let i=0;i<15;i++){
+        const mod = ((bits >>> i) & 1) === 1;
+        if(i<8) this.modules[8][this.moduleCount - i - 1]=mod;
+        else if(i<9) this.modules[8][15 - i - 1 + 1]=mod;
+        else this.modules[8][15 - i - 1]=mod;
+      }
+      this.modules[this.moduleCount-8][8]=true;
+    },
+    mapData:function(data, maskPattern){
+      let inc=-1;
+      let row=this.moduleCount-1;
+      let bitIndex=0;
+      let byteIndex=0;
+      for(let col=this.moduleCount-1; col>0; col-=2){
+        if(col===6) col--;
+        while(true){
+          for(let c=0;c<2;c++){
+            if(this.modules[row][col-c]===null){
+              let dark=false;
+              if(byteIndex < data.length){
+                dark = ((data[byteIndex] >>> (7-bitIndex)) & 1) === 1;
+              }
+              const mask = getMask(maskPattern, row, col-c);
+              this.modules[row][col-c] = mask ? !dark : dark;
+              bitIndex++;
+              if(bitIndex===8){ bitIndex=0; byteIndex++; }
+            }
+          }
+          row += inc;
+          if(row<0 || this.moduleCount<=row){
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    }
+  };
+
+  global.SimpleQR = {
+    makeCanvas: function(text, sizePx, quietModules){
+      const qr = new QRCode(text);
+      qr.make();
+      const count = qr.getModuleCount();
+      const quiet = quietModules ?? 4;
+      const modules = count + quiet*2;
+      const canvas = document.createElement("canvas");
+      canvas.width = sizePx;
+      canvas.height = sizePx;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle="#fff";
+      ctx.fillRect(0,0,sizePx,sizePx);
+      ctx.fillStyle="#000";
+      const cell = sizePx / modules;
+      for(let r=0;r<count;r++){
+        for(let c=0;c<count;c++){
+          if(qr.isDark(r,c)){
+            const x=(c+quiet)*cell;
+            const y=(r+quiet)*cell;
+            ctx.fillRect(x,y,cell,cell);
+          }
+        }
+      }
+      return canvas;
+    }
+  };
+})(window);
+
+/**
+ * -------------- PUZZEL LOGICA --------------
+ */
+let tiles = [];
+let placements = new Map();
+let correctCount = 0;
+let challengeCompleted = false;
+
+function setStatus(kind, text){
+  status.classList.remove("ok","bad");
+  if(kind) status.classList.add(kind);
+  statusText.textContent = text;
+}
+
+function updateProgress(){
+  pill.textContent = correctCount + " / " + (GRID*GRID) + " goed";
+  if(correctCount === GRID*GRID){
+    setStatus("ok","QR is compleet!");
+  } else {
+    setStatus(null,"Plaats alle stukjes goed.");
+  }
+}
+
+function showOverlay(){
+  finalQR.innerHTML = "";
+  const c = SimpleQR.makeCanvas(QR_TEXT, 420, QUIET);
+  finalQR.appendChild(c);
+  overlay.style.display = "flex";
+
+  // Mark challenge as complete
+  if(!challengeCompleted){
+    challengeCompleted = true;
+    fetch("http://127.0.0.1:5000/challenge/action?complete=1").catch(function(e){});
+  }
+}
+
+function buildBoardAndTiles(){
+  board.innerHTML = "";
+  tray.innerHTML = "";
+  tiles = [];
+  placements.clear();
+  correctCount = 0;
+
+  const source = SimpleQR.makeCanvas(QR_TEXT, QR_SIZE, QUIET);
+
+  const boardRectSize = Math.min(board.clientWidth, board.clientHeight);
+  const slotSize = boardRectSize / GRID;
+
+  for(let i=0;i<GRID*GRID;i++){
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    const r = Math.floor(i/GRID);
+    const c = i % GRID;
+    slot.style.left = (c * slotSize) + "px";
+    slot.style.top  = (r * slotSize) + "px";
+    slot.style.width = slotSize + "px";
+    slot.style.height = slotSize + "px";
+    slot.dataset.slotIndex = String(i);
+    board.appendChild(slot);
+  }
+
+  const pieceSize = Math.floor(QR_SIZE / GRID);
+  const tmp = document.createElement("canvas");
+  tmp.width = pieceSize;
+  tmp.height = pieceSize;
+  const tctx = tmp.getContext("2d");
+
+  for(let i=0;i<GRID*GRID;i++){
+    const r = Math.floor(i/GRID);
+    const c = i % GRID;
+
+    tctx.clearRect(0,0,pieceSize,pieceSize);
+    tctx.drawImage(source, c*pieceSize, r*pieceSize, pieceSize, pieceSize, 0, 0, pieceSize, pieceSize);
+
+    const tile = document.createElement("img");
+    tile.className = "tile";
+    tile.src = tmp.toDataURL("image/png");
+    tile.draggable = false;
+    tile.dataset.tileId = String(i);
+    tile.dataset.correctSlot = String(i);
+
+    const trayTileSize = Math.max(70, Math.min(100, Math.floor((tray.clientWidth - 30) / 3)));
+    tile.style.width = trayTileSize + "px";
+    tile.style.height = trayTileSize + "px";
+    tile.style.borderRadius = TILE_RADIUS + "px";
+
+    tile.style.position = "relative";
+    tile.style.left = "0px";
+    tile.style.top = "0px";
+
+    tray.appendChild(tile);
+    tiles.push(tile);
+
+    attachDrag(tile);
+  }
+
+  shuffleTiles();
+  updateProgress();
+}
+
+function shuffleTiles(){
+  const arr = [].concat(tiles);
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random() * (i+1));
+    var temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
+  }
+  tray.innerHTML = "";
+  for(var k=0;k<arr.length;k++){
+    setTileToTray(arr[k]);
+    tray.appendChild(arr[k]);
+  }
+  placements.clear();
+  correctCount = 0;
+  updateProgress();
+}
+
+function setTileToTray(tile){
+  tile.style.position = "relative";
+  tile.style.left = "0px";
+  tile.style.top = "0px";
+  tile.style.zIndex = "0";
+  tile.classList.remove("dragging");
+  tile.dataset.onBoard = "0";
+}
+
+function setTileToBoardAbsolute(tile, x, y){
+  tile.style.position = "absolute";
+  tile.style.left = x + "px";
+  tile.style.top = y + "px";
+  tile.style.zIndex = "10";
+  tile.dataset.onBoard = "1";
+}
+
+function attachDrag(tile){
+  var pointerId = null;
+  var startX = 0, startY = 0;
+  var origLeft = 0, origTop = 0;
+  var fromTray = true;
+
+  tile.addEventListener("pointerdown", function(e){
+    e.preventDefault();
+    pointerId = e.pointerId;
+    tile.setPointerCapture(pointerId);
+    tile.classList.add("dragging");
+
+    var rect = tile.getBoundingClientRect();
+    startX = e.clientX;
+    startY = e.clientY;
+
+    var onBoard = tile.dataset.onBoard === "1";
+    fromTray = !onBoard;
+
+    var boardRect = board.getBoundingClientRect();
+    if(fromTray){
+      var xInBoard = rect.left - boardRect.left;
+      var yInBoard = rect.top - boardRect.top;
+      board.appendChild(tile);
+      setTileToBoardAbsolute(tile, xInBoard, yInBoard);
+    }
+
+    origLeft = parseFloat(tile.style.left);
+    origTop  = parseFloat(tile.style.top);
+  });
+
+  tile.addEventListener("pointermove", function(e){
+    if(pointerId === null || e.pointerId !== pointerId) return;
+    e.preventDefault();
+    var dx = e.clientX - startX;
+    var dy = e.clientY - startY;
+    setTileToBoardAbsolute(tile, origLeft + dx, origTop + dy);
+  });
+
+  tile.addEventListener("pointerup", function(e){
+    if(pointerId === null || e.pointerId !== pointerId) return;
+    e.preventDefault();
+    tile.releasePointerCapture(pointerId);
+    pointerId = null;
+    tile.classList.remove("dragging");
+
+    var snapped = trySnap(tile);
+    if(!snapped){
+      removePlacementIfAny(tile);
+      tray.appendChild(tile);
+      setTileToTray(tile);
+      updateProgress();
+    } else {
+      updateProgress();
+      if(correctCount === GRID*GRID){
+        setTimeout(showOverlay, 350);
+      }
+    }
+  });
+
+  tile.addEventListener("pointercancel", function(){
+    pointerId = null;
+    tile.classList.remove("dragging");
+  });
+}
+
+function removePlacementIfAny(tile){
+  var tileId = tile.dataset.tileId;
+  if(placements.has(tileId)){
+    placements.delete(tileId);
+    correctCount = 0;
+    placements.forEach(function(sidx, tid){
+      var t = document.querySelector('img.tile[data-tile-id="'+tid+'"]');
+      if(t && Number(t.dataset.correctSlot) === Number(sidx)) correctCount++;
+    });
+  }
+}
+
+function trySnap(tile){
+  var boardRect = board.getBoundingClientRect();
+  var tileRect  = tile.getBoundingClientRect();
+
+  var cx = (tileRect.left + tileRect.right)/2 - boardRect.left;
+  var cy = (tileRect.top + tileRect.bottom)/2 - boardRect.top;
+
+  var slotSize = board.clientWidth / GRID;
+  var col = Math.floor(cx / slotSize);
+  var row = Math.floor(cy / slotSize);
+  if(col < 0 || col >= GRID || row < 0 || row >= GRID) return false;
+
+  var slotIndex = row*GRID + col;
+
+  var snapX = col*slotSize;
+  var snapY = row*slotSize;
+
+  var dx = Math.abs((tileRect.left - boardRect.left) - snapX);
+  var dy = Math.abs((tileRect.top  - boardRect.top)  - snapY);
+  if(dx > SNAP_PX || dy > SNAP_PX) return false;
+
+  // Check if slot is occupied by another tile
+  var occupied = false;
+  placements.forEach(function(sidx, tid){
+    if(Number(sidx) === Number(slotIndex) && tid !== tile.dataset.tileId){
+      occupied = true;
+    }
+  });
+  if(occupied) return false;
+
+  setTileToBoardAbsolute(tile, snapX, snapY);
+  // Resize tile to fit slot exactly
+  tile.style.width = slotSize + "px";
+  tile.style.height = slotSize + "px";
+  placements.set(tile.dataset.tileId, slotIndex);
+
+  correctCount = 0;
+  placements.forEach(function(sidx, tid){
+    var t = document.querySelector('img.tile[data-tile-id="'+tid+'"]');
+    if(t && Number(t.dataset.correctSlot) === Number(sidx)) correctCount++;
+  });
+
+  if(placements.size === GRID*GRID && correctCount !== GRID*GRID){
+    setStatus("bad","Alle stukjes geplaatst, maar niet correct.");
+  }
+
+  return true;
+}
+
+// init
+window.addEventListener("load", function(){
+  requestAnimationFrame(buildBoardAndTiles);
+});
+</script>
+</body>
+</html>
